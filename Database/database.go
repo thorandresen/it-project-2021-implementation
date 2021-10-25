@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	client, err := immuclient.NewImmuClient(client.DefaultOptions())
+	client, err := immuclient.NewImmuClient(client.DefaultOptions().WithPort(3322).WithAddress("68.183.215.139"))
 	if err != nil {
 		log.Fatal(err)
 	}
