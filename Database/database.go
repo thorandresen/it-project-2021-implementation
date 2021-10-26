@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 
 	"github.com/codenotary/immudb/pkg/client"
@@ -23,6 +24,19 @@ func main() {
 	// set up an authenticated context that will be required in future operations
 	md := metadata.Pairs("authorization", lr.Token)
 	ctx = metadata.NewOutgoingContext(context.Background(), md)
+
+    vtx, err := client.VerifiedSet(ctx, []byte(`hello`), []byte(`immutable world`))
+	if  err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("Set and verified key '%s' with value '%s' at tx %d\n", []byte(`hello`), []byte(`immutable world`), vtx.Id)
+
+	ventry, err := client.VerifiedGet(ctx, []byte(`hello`))
+	if  err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("Sucessfully verified key '%s' with value '%s' at tx %d\n", ventry.Key, ventry.Value, ventry.Tx)
+
 
 	log.Println("Connection established")
 }
