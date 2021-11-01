@@ -1,1 +1,0 @@
-docker run -d --net host -it --rm --name immudb codenotary/immudb:latest
