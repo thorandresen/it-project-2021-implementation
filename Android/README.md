@@ -1,1 +1,0 @@
-# it-project-2021-implementation
