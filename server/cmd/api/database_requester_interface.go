@@ -10,11 +10,11 @@ type databaseHandler struct {
 	DatabaseRequester DatabaseRequester
 }
 
-func databaseFactory(env string) databaseHandler {
-	switch env {
-	case "prodcution":
+func databaseFactory(sc ServerConfig) databaseHandler {
+	switch sc.env {
+	case "production":
 		return databaseHandler{
-			DatabaseRequester: &RealDatabaseRequester{},
+			DatabaseRequester: NewImmudbRequester(sc),
 		}
 	default:
 		return databaseHandler{

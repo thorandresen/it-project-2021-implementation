@@ -14,14 +14,16 @@ var testingEnv bool = false
 var db databaseHandler
 
 func main() {
-	testingEnv := *flag.Bool("test",false,"set the env to test")
+	//Import Arguments
+	configPath := *flag.String("path","secret.yaml","set the path to the config file")
 	flag.Parse()
-	fmt.Println(testingEnv)
-	if (testingEnv) {
-		db = databaseFactory("")
-	} else {
-		db = databaseFactory("production")
-	}    
+
+	//Import Config
+	config := importConfig(configPath)
+
+	db = databaseFactory(config)
+
+	//Setup Routers 
 	router := gin.Default()
     router.GET("/verify", verifyChallenge)
 	router.GET("/challenge/:challenge",getChallenge)
