@@ -29,7 +29,10 @@ func main() {
 	router.GET("/challenge/:challenge",getChallenge)
 	router.GET("/release/:id",releaseID)
 	router.POST("/init/:id",facotoryInitPuf)
-    router.Run("localhost:8080")
+
+	host := config.server_addr + ":" + strconv.Itoa(config.server_port)
+	fmt.Println(host)
+    router.Run(host)
 }
 
 // Returns a challenge for a given PUF id 

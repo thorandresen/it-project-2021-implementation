@@ -17,10 +17,10 @@ type ImmudbRequester struct{
 }
 
 func NewImmudbRequester(connector ServerConfig) (ir ImmudbRequester){
-	ir.client, _ = immuclient.NewImmuClient(client.DefaultOptions().WithPort(connector.port).WithAddress(connector.addr))
+	ir.client, _ = immuclient.NewImmuClient(client.DefaultOptions().WithPort(connector.db_port).WithAddress(connector.db_addr))
 	ir.context = context.Background()
 
-	lr, err := ir.client.Login(ir.context, []byte(connector.username), []byte(connector.password))
+	lr, err := ir.client.Login(ir.context, []byte(connector.db_username), []byte(connector.db_password))
 	if err != nil {
 		fmt.Println(err)
 		log.Fatal(err)
@@ -46,7 +46,12 @@ func NewImmudbRequester(connector ServerConfig) (ir ImmudbRequester){
 }
 
 func (immudbRequester ImmudbRequester) getChallenge(pufID int) int {
-	// TO be implemented :)
+	ventry, err := immudbRequester.client.VerifiedGet(immudbRequester.context, []byte(``))
+	if  err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("Sucessfully verified key '%s' with value '%s' at tx %d\n", ventry.Key, ventry.Value, ventry.Tx)
+	log.Println("Connection established")
 	return pufID
 }
 func (immudbRequester ImmudbRequester) verifyChallenge(pufID int, challenge int, response int) bool {

@@ -8,10 +8,12 @@ import (
 
 type ServerConfig struct{
 	env string
-	addr string
-	port int
-	username string
-	password string
+	server_addr string
+	server_port int
+	db_addr string
+	db_port int
+	db_username string
+	db_password string
 }
 
 func importConfig(path string) ServerConfig {
@@ -22,10 +24,12 @@ func importConfig(path string) ServerConfig {
 
 	var connector = ServerConfig{}
 	connector.env = data["env"].(string)
-	connector.addr = data["addr"].(string)
-	connector.port = data["port"].(int)
-	connector.username = data["username"].(string)
-	connector.password = data["password"].(string)
+	connector.server_addr = data["server_addr"].(string)
+	connector.server_port = data["server_port"].(int)
+	connector.db_addr = data["db_addr"].(string)
+	connector.db_port = data["db_port"].(int)
+	connector.db_username = data["db_username"].(string)
+	connector.db_password = data["db_password"].(string)
 
 	return connector
 }
