@@ -49,7 +49,7 @@ func verifyChallenge(c *gin.Context) {
 	fmt.Println(c.PostForm("c"))
 	id, _ := strconv.Atoi(c.PostForm("id"))
 	challenge, _ := strconv.Atoi(c.PostForm("challenge"))
-	response, _ := strconv.Atoi(c.PostForm("resposne"))
+	response, _ := strconv.Atoi(c.PostForm("response"))
 	verifyedStatus := db.DatabaseRequester.verifyChallenge(id,challenge,response)
     c.IndentedJSON(http.StatusOK, verifyedStatus)
 }

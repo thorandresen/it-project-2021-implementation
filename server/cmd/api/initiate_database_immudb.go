@@ -21,6 +21,6 @@ func initiateDatabase(ServerConfig ServerConfig) {
 	defer db.Close()
 	
 
-	_, _ = db.ExecContext(context.TODO(), "CREATE TABLE devices(pid INTEGER, count INTEGER, owner VARCHAR, state VARCHAR, PRIMARY KEY pid)")
+	_, _ = db.ExecContext(context.TODO(), "CREATE TABLE devices(pid INTEGER, owner VARCHAR, challenge_counter INTEGER, state VARCHAR, PRIMARY KEY pid);")
 	_, _ = db.ExecContext(context.TODO(), "CREATE TABLE users(id VARCHAR, token VARCHAR, pk VARCHAR, name VARCHAR, number INTEGER, email VARCHAR)")
 }
