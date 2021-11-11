@@ -14,9 +14,11 @@ import (
 type ImmudbRequester struct{
 	client client.ImmuClient
 	context context.Context
+	serverConfig ServerConfig
 }
 
 func NewImmudbRequester(connector ServerConfig) (ir ImmudbRequester){
+	ir.serverConfig = connector
 	ir.client, _ = immuclient.NewImmuClient(client.DefaultOptions().WithPort(connector.db_port).WithAddress(connector.db_addr))
 	ir.context = context.Background()
 
@@ -57,4 +59,8 @@ func (immudbRequester ImmudbRequester) getChallenge(pufID int) int {
 func (immudbRequester ImmudbRequester) verifyChallenge(pufID int, challenge int, response int) bool {
 	// TO be implemented :)
 	return true
+}
+
+func (immudbRequester ImmudbRequester) commenceDatabase(){
+	initiateDatabase(immudbRequester.serverConfig)
 }

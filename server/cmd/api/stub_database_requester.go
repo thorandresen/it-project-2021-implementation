@@ -1,5 +1,6 @@
 package main
-// Concrete stub, always returns (id * 2) 
+
+// Concrete stub, always returns (id * 2)
 type StubRequester struct{}
 
 func (stubRequester StubRequester) getChallenge(pufID int) int {
@@ -12,4 +13,6 @@ func (stubRequester StubRequester) verifyChallenge(pufID int, challenge int, res
 	return false
 }
 
-
+func (stubRequester StubRequester) commenceDatabase() {
+	
+}

@@ -23,6 +23,8 @@ func main() {
 
 	db = databaseFactory(config)
 
+	db.DatabaseRequester.commenceDatabase()
+
 	//Setup Routers 
 	router := gin.Default()
     router.GET("/verify", verifyChallenge)

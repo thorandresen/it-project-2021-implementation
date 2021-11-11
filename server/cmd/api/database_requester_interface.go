@@ -4,6 +4,7 @@ package main
 type DatabaseRequester interface {
 	getChallenge(int) int
 	verifyChallenge(int,int,int) bool
+	commenceDatabase()
 }
 // Strategy
 type databaseHandler struct {
