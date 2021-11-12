@@ -62,6 +62,7 @@ func releaseID(c *gin.Context) {
 
 // Initiate a PUF id in database, used only for MOCK puf. 
 func facotoryInitPuf(c *gin.Context) {
-	fmt.Println(c.PostForm("c"))
+	puf_id, _ := strconv.Atoi(c.Param("id"))
+	db.DatabaseRequester.initiatePuf(puf_id)
     c.IndentedJSON(http.StatusOK, "yes yes")
 }

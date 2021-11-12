@@ -16,3 +16,6 @@ func (stubRequester StubRequester) verifyChallenge(pufID int, challenge int, res
 func (stubRequester StubRequester) commenceDatabase() {
 	
 }
+func (stubRequester StubRequester) initiatePuf(int) {
+	
+}

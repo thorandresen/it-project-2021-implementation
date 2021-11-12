@@ -5,6 +5,7 @@ type DatabaseRequester interface {
 	getChallenge(int) int
 	verifyChallenge(int,int,int) bool
 	commenceDatabase()
+	initiatePuf(int)
 }
 // Strategy
 type databaseHandler struct {

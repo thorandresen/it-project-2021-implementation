@@ -4,7 +4,10 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"math/rand"
+	"strconv"
 
+	"github.com/codenotary/immudb/pkg/api/schema"
 	"github.com/codenotary/immudb/pkg/client"
 	immuclient "github.com/codenotary/immudb/pkg/client"
 	"google.golang.org/grpc/metadata"
@@ -30,37 +33,46 @@ func NewImmudbRequester(connector ServerConfig) (ir ImmudbRequester){
 	// set up an authenticated context that will be required in future operations
 	md := metadata.Pairs("authorization", lr.Token)
 	ir.context = metadata.NewOutgoingContext(context.Background(), md)
-
-	vtx, err := ir.client.VerifiedSet(ir.context, []byte(`hello`), []byte(`immutable world`))
-	if  err != nil {
-		log.Fatal(err)
-	}
-	fmt.Printf("Set and verified key '%s' with value '%s' at tx %d\n", []byte(`hello`), []byte(`immutable world`), vtx.Id)
-
-	ventry, err := ir.client.VerifiedGet(ir.context, []byte(`hello`))
-	if  err != nil {
-		log.Fatal(err)
-	}
-	fmt.Printf("Sucessfully verified key '%s' with value '%s' at tx %d\n", ventry.Key, ventry.Value, ventry.Tx)
-	log.Println("Connection established")
-
 	return ir
 }
 
 func (immudbRequester ImmudbRequester) getChallenge(pufID int) int {
-	ventry, err := immudbRequester.client.VerifiedGet(immudbRequester.context, []byte(``))
-	if  err != nil {
-		log.Fatal(err)
+	command := "SELECT challenge_counter FROM devices WHERE pid =" + strconv.Itoa(pufID)
+	res, err := immudbRequester.client.SQLQuery(immudbRequester.context,command,nil,true)
+	if err != nil {
+		panic(err)
 	}
-	fmt.Printf("Sucessfully verified key '%s' with value '%s' at tx %d\n", ventry.Key, ventry.Value, ventry.Tx)
-	log.Println("Connection established")
-	return pufID
+	challenge, _ := strconv.Atoi(schema.RenderValue(res.Rows[0].Values[0].Value))
+	return challenge
 }
 func (immudbRequester ImmudbRequester) verifyChallenge(pufID int, challenge int, response int) bool {
-	// TO be implemented :)
-	return true
+	requestChallenge := "SELECT response FROM puf_" + strconv.Itoa(pufID) + " WHERE challenge = " + strconv.Itoa(challenge)
+	res, _ := immudbRequester.client.SQLQuery(immudbRequester.context,requestChallenge,nil,true)
+	storedResponse, _ := strconv.Atoi(schema.RenderValue(res.Rows[0].Values[0].Value))
+	if (storedResponse != 0 && storedResponse == response){
+		// increment counter
+		requestBurnChallenge := "UPSERT INTO puf_" + strconv.Itoa(pufID) + "(challenge, response) VALUES (" + strconv.Itoa(challenge) +",0)"
+		immudbRequester.client.SQLExec(immudbRequester.context,requestBurnChallenge,nil)	
+		return true
+	}
+	return false
 }
 
 func (immudbRequester ImmudbRequester) commenceDatabase(){
 	initiateDatabase(immudbRequester.serverConfig)
+}
+
+func (immudbRequester ImmudbRequester) initiatePuf(id int){
+	command := "CREATE TABLE IF NOT EXISTS puf_" + strconv.Itoa(id) + "(challenge INTEGER, response INTEGER, PRIMARY KEY challenge);"
+	//params := map[string]interface{}{"id": 1}
+	//create database table for PUF with CR pairs
+	_, err := immudbRequester.client.SQLExec(immudbRequester.context,command,nil)
+	if err != nil {
+		panic(err)
+	}
+	r := rand.New(rand.NewSource(int64(id)))
+	for i := 0; i < 10; i++ {
+		command := "UPSERT INTO puf_" + strconv.Itoa(id) + "(challenge, response) VALUES (" + strconv.Itoa(i) + "," + strconv.Itoa(r.Int()) + ")"
+		immudbRequester.client.SQLExec(immudbRequester.context,command,nil)	
+	}
 }
