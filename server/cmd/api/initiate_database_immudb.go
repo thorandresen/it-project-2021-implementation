@@ -9,10 +9,11 @@ import (
 )
 
 func initiateDatabase(ServerConfig ServerConfig) {
-	// SQL Commands for the database initiatization -- Create tables for users and devices
+	// SQL Commands for the database initiatization -- Create tables for users and devices and storage for keys
 	var commands []string
 	commands = append(commands, "CREATE TABLE IF NOT EXISTS devices(pid INTEGER, owner VARCHAR, challenge_counter INTEGER, state VARCHAR, PRIMARY KEY pid);")
-	commands = append(commands, "CREATE TABLE IF NOT EXISTS users(id VARCHAR[256], pk VARCHAR, first_name VARCHAR, last_name VARCHAR, phone_number INTEGER, email VARCHAR, PRIMARY KEY id)")
+	commands = append(commands, "CREATE TABLE IF NOT EXISTS users(id VARCHAR[256], first_name VARCHAR, last_name VARCHAR, phone_number INTEGER, email VARCHAR, PRIMARY KEY id)")
+	commands = append(commands, "CREATE TABLE IF NOT EXISTS user_keys(id VARCHAR[256], pk VARCHAR[1024], PRIMARY KEY id")
 
 	// Connect to db
 	opts := client.DefaultOptions()
