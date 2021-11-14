@@ -50,7 +50,7 @@ func (immudbRequester ImmudbRequester) verifyChallenge(pufID int, challenge int,
 	res, _ := immudbRequester.client.SQLQuery(immudbRequester.context,requestChallenge,nil,true)
 	storedResponse, _ := strconv.Atoi(schema.RenderValue(res.Rows[0].Values[0].Value))
 	if (storedResponse != 0 && storedResponse == response){
-		// increment counter
+		// TODO increment counter in a meaningful manner
 		requestBurnChallenge := "UPSERT INTO puf_" + strconv.Itoa(pufID) + "(challenge, response) VALUES (" + strconv.Itoa(challenge) +",0)"
 		immudbRequester.client.SQLExec(immudbRequester.context,requestBurnChallenge,nil)	
 		return true
@@ -75,4 +75,19 @@ func (immudbRequester ImmudbRequester) initiatePuf(id int){
 		command := "UPSERT INTO puf_" + strconv.Itoa(id) + "(challenge, response) VALUES (" + strconv.Itoa(i) + "," + strconv.Itoa(r.Int()) + ")"
 		immudbRequester.client.SQLExec(immudbRequester.context,command,nil)	
 	}
+}
+
+func (immudbRequester ImmudbRequester) storeIdentity(uuid string, pk string){
+	if userExist(uuid) {
+
+	} else {
+		// storeUserCommand := "UPSERT INTO users(id,email,first_name,last_name,phone_number)"
+	}
+
+
+}
+
+func userExist(uuid string) bool {
+	// checkExistanceCommand := "SELECT "
+	return true
 }

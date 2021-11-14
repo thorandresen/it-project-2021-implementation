@@ -31,7 +31,9 @@ func main() {
 	router.GET("/challenge/:challenge",getChallenge)
 	router.GET("/release/:id",releaseID)
 	router.POST("/init/:id",facotoryInitPuf)
-
+	router.POST("/createUser",createNewUser)
+	router.POST("/transfer/request",requestTransfer)
+	router.POST("/transfer/accept",acceptTransfer)
 	host := config.server_addr + ":" + strconv.Itoa(config.server_port)
 	fmt.Println(host)
     router.Run(host)
@@ -46,7 +48,6 @@ func getChallenge(c *gin.Context) {
 
 // Verify a challange with a C,R from a given PUF ID
 func verifyChallenge(c *gin.Context) {
-	fmt.Println(c.PostForm("c"))
 	id, _ := strconv.Atoi(c.PostForm("id"))
 	challenge, _ := strconv.Atoi(c.PostForm("challenge"))
 	response, _ := strconv.Atoi(c.PostForm("response"))
@@ -65,4 +66,21 @@ func facotoryInitPuf(c *gin.Context) {
 	puf_id, _ := strconv.Atoi(c.Param("id"))
 	db.DatabaseRequester.initiatePuf(puf_id)
     c.IndentedJSON(http.StatusOK, "yes yes")
+}
+
+// Request an transfer of Ownsership
+func requestTransfer(c *gin.Context) {}
+
+// Accept an transfer of Ownsership
+func acceptTransfer(c *gin.Context) {}
+
+// Create a new user 
+func createNewUser(c *gin.Context) {
+	uuid := c.PostForm("uuid")
+	token := c.PostForm("mitID_token")
+	var validationToken = mitID_authtoken{token}
+	pk := c.PostForm("public_key")
+	if verifyMyId(uuid, validationToken) {
+		db.DatabaseRequester.storeIdentity(uuid,pk)
+	}
 }

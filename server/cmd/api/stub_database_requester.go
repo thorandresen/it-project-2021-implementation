@@ -19,3 +19,6 @@ func (stubRequester StubRequester) commenceDatabase() {
 func (stubRequester StubRequester) initiatePuf(int) {
 	
 }
+
+func (stubRequester StubRequester) storeIdentity(id string, pk string ) {
+}
