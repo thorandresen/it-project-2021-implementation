@@ -13,6 +13,7 @@ import android.widget.Button;
 
 import java.io.IOException;
 import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.KeyStore;
@@ -21,6 +22,8 @@ import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.Signature;
+import java.security.SignatureException;
 import java.security.UnrecoverableEntryException;
 import java.security.cert.CertificateException;
 
@@ -75,9 +78,7 @@ public class MainActivity extends AppCompatActivity {
         try {
             kpg = KeyPairGenerator.getInstance(
                     KeyProperties.KEY_ALGORITHM_RSA, "AndroidKeyStore");
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        } catch (NoSuchProviderException e) {
+        } catch (NoSuchAlgorithmException | NoSuchProviderException e) {
             e.printStackTrace();
         }
 
@@ -105,30 +106,41 @@ public class MainActivity extends AppCompatActivity {
         }
         try {
             keyStore.load(null);
-        } catch (CertificateException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (NoSuchAlgorithmException e) {
+        } catch (CertificateException | IOException | NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
         KeyStore.Entry entry = null;
         try {
             entry = keyStore.getEntry("test", null);
-        } catch (KeyStoreException e) {
-            e.printStackTrace();
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        } catch (UnrecoverableEntryException e) {
-            e.printStackTrace();
-        }
-        PrivateKey privateKey = ((KeyStore.PrivateKeyEntry) entry).getPrivateKey();
-        Log.i("Key",privateKey.toString());
-
-        try {
+            PrivateKey privateKey = ((KeyStore.PrivateKeyEntry) entry).getPrivateKey();
+            Log.i("Key",privateKey.toString());
             PublicKey publicKey = keyStore.getCertificate("test").getPublicKey();
             Log.i("Key",publicKey.toString());
-        } catch (KeyStoreException e) {
+            signAndVerify(privateKey,publicKey);
+        } catch (KeyStoreException | NoSuchAlgorithmException | UnrecoverableEntryException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    public void signAndVerify(PrivateKey prvKey, PublicKey pk){
+        Signature s = null;
+        try {
+            s = Signature.getInstance("SHA256withRSA/PSS");
+            s.initSign(prvKey);
+            String msg = "skrt";
+            byte[] data = msg.getBytes();
+            s.update(data);
+            byte[] signature = s.sign();
+            Log.i("Sig",signature.toString());
+
+
+            s.initVerify(pk);
+            s.update(signature);
+            boolean valid = s.verify(signature);
+            Log.i("Sig", String.valueOf(valid));
+
+        } catch (NoSuchAlgorithmException | InvalidKeyException | SignatureException e) {
             e.printStackTrace();
         }
     }
