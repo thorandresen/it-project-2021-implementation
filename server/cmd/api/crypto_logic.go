@@ -1,5 +1,5 @@
 package main
 
-// verify signature using RSA-PSA SHA256
+// verify signature using RSA-PSS SHA256
 func verifySignature() {}
 

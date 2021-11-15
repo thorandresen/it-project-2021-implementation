@@ -31,7 +31,7 @@ func main() {
 	router.GET("/challenge/:challenge",getChallenge)
 	router.GET("/release/:id",releaseID)
 	router.POST("/init/:id",facotoryInitPuf)
-	router.POST("/createUser",createNewUser)
+	router.POST("/create-user",createNewUser)
 	router.POST("/transfer/request",requestTransfer)
 	router.POST("/transfer/accept",acceptTransfer)
 	host := config.server_addr + ":" + strconv.Itoa(config.server_port)
@@ -83,4 +83,5 @@ func createNewUser(c *gin.Context) {
 	if verifyMyId(uuid, validationToken) {
 		db.DatabaseRequester.storeIdentity(uuid,pk)
 	}
+	c.IndentedJSON(http.StatusOK,pk)
 }

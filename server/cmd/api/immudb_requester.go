@@ -78,13 +78,15 @@ func (immudbRequester ImmudbRequester) initiatePuf(id int){
 }
 
 func (immudbRequester ImmudbRequester) storeIdentity(uuid string, pk string){
-	if userExist(uuid) {
-
-	} else {
-		// storeUserCommand := "UPSERT INTO users(id,email,first_name,last_name,phone_number)"
+	storePKCommand := "INSERT INTO user_keys(uuid,public_key) VALUES (@uuid,@pk)"
+	_, err := immudbRequester.client.SQLExec(immudbRequester.context,storePKCommand,map[string]interface{}{"uuid": "sad", "pk": "Joe"})
+	if err != nil {
+		panic(err)
 	}
-
-
+	if !userExist(uuid) {
+		storeUserCommand := "UPSERT INTO users(id,email,first_name,last_name,phone_number) VALUES (@uuid,@email,@first,@last,@number)"
+		_, _ = immudbRequester.client.SQLExec(immudbRequester.context,storeUserCommand,map[string]interface{}{"uuid": 1, "email": "Joe","first":"skirt","last":"skrski","number":23})
+	}
 }
 
 func userExist(uuid string) bool {
