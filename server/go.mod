@@ -5,6 +5,7 @@ go 1.17
 require (
 	github.com/codenotary/immudb v1.1.0
 	github.com/gin-gonic/gin v1.7.4
+	github.com/go-sql-driver/mysql v1.4.0
 	google.golang.org/grpc v1.39.0
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 )
@@ -55,6 +56,7 @@ require (
 	golang.org/x/sys v0.0.0-20210630005230-0f9fa26af87c // indirect
 	golang.org/x/term v0.0.0-20201126162022-7de9c90e9dd1 // indirect
 	golang.org/x/text v0.3.6 // indirect
+	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20210722135532-667f2b7c528f // indirect
 	google.golang.org/protobuf v1.27.1 // indirect
 	gopkg.in/ini.v1 v1.62.0 // indirect
