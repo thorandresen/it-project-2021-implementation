@@ -78,11 +78,13 @@ func (immudbRequester ImmudbRequester) initiatePuf(id int){
 }
 
 func (immudbRequester ImmudbRequester) storeIdentity(uuid string, pk string){
-	storePKCommand := "INSERT INTO user_keys(uuid,public_key) VALUES (@uuid,@pk)"
-	_, err := immudbRequester.client.SQLExec(immudbRequester.context,storePKCommand,map[string]interface{}{"uuid": "sad", "pk": "Joe"})
-	if err != nil {
-		panic(err)
-	}
+	if !userKeyExits(uuid, pk, immudbRequester) {
+		storePKCommand := "INSERT INTO user_keys(uuid,public_key) VALUES (@uuid,@pk)"
+		_, err := immudbRequester.client.SQLExec(immudbRequester.context,storePKCommand,map[string]interface{}{"uuid": uuid, "pk": pk})
+		if err != nil {
+			panic(err)
+		}
+	}	
 	if !userExist(uuid) {
 		storeUserCommand := "UPSERT INTO users(id,email,first_name,last_name,phone_number) VALUES (@uuid,@email,@first,@last,@number)"
 		_, _ = immudbRequester.client.SQLExec(immudbRequester.context,storeUserCommand,map[string]interface{}{"uuid": 1, "email": "Joe","first":"skirt","last":"skrski","number":23})
@@ -91,5 +93,17 @@ func (immudbRequester ImmudbRequester) storeIdentity(uuid string, pk string){
 
 func userExist(uuid string) bool {
 	// checkExistanceCommand := "SELECT "
+	return true
+}
+
+func userKeyExits(uuid string, key string, ir ImmudbRequester) bool {
+	fmt.Printf("uuid: %s key: %s",uuid,key)
+	command := "select public_key from user_keys where uuid = @uuid AND public_key = @key"
+	res, _ := ir.client.SQLQuery(ir.context,command,map[string]interface{}{"uuid": uuid, "key": key},true)
+	storedResponse, _ := strconv.Atoi(schema.RenderValue(res.Rows[0].Values[0].Value))
+	fmt.Println(storedResponse)
+	// if storedResponse != 1 {
+	// 	return false
+	// }
 	return true
 }

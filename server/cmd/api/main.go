@@ -34,6 +34,7 @@ func main() {
 	router.POST("/create-user",createNewUser)
 	router.POST("/transfer/request",requestTransfer)
 	router.POST("/transfer/accept",acceptTransfer)
+	router.POST("/jsontest",testJson)
 	host := config.server_addr + ":" + strconv.Itoa(config.server_port)
 	fmt.Println(host)
     router.Run(host)
@@ -46,13 +47,38 @@ func getChallenge(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, challenge)
 }
 
+type Login struct {
+	User     string `form:"user" json:"user" xml:"user"  binding:"required"`
+	Password string `form:"password" json:"password" xml:"password" binding:"required"`
+}
+
+// Test json
+func testJson(c *gin.Context){
+	json := Login{}
+	if err := c.ShouldBindJSON(&json); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	fmt.Printf("username: %s, pw: %s",json.User,json.Password)
+	c.JSON(http.StatusAccepted,&json)
+}
+
+type ChallengeJSON struct {
+	Id int `json:"id" binding:"required"`
+	Challenge int `json:"challenge" binding:"required"`
+	Response int `json:"response" binding:"required"`
+}
+
 // Verify a challange with a C,R from a given PUF ID
 func verifyChallenge(c *gin.Context) {
-	id, _ := strconv.Atoi(c.PostForm("id"))
-	challenge, _ := strconv.Atoi(c.PostForm("challenge"))
-	response, _ := strconv.Atoi(c.PostForm("response"))
-	verifyedStatus := db.DatabaseRequester.verifyChallenge(id,challenge,response)
-    c.IndentedJSON(http.StatusOK, verifyedStatus)
+	data := ChallengeJSON{}
+	if err := c.ShouldBindJSON(&data); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	fmt.Printf("username: %d, pw: %d",data.Id,data.Challenge)
+	// _ = db.DatabaseRequester.verifyChallenge(data.Id,data.Challenge,data.Response)
+	c.JSON(http.StatusOK,&data)
 }
 
 // Release an given PUF id and sends a TWO step verification to a phone number.
