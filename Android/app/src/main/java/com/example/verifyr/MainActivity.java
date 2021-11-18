@@ -8,20 +8,16 @@ import android.os.Bundle;
 import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyProperties;
 import android.util.Log;
-import android.view.View;
 import android.widget.Button;
 
 import java.io.IOException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
-import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
-import java.security.PrivateKey;
-import java.security.PublicKey;
 import java.security.Signature;
 import java.security.SignatureException;
 import java.security.UnrecoverableEntryException;
@@ -29,12 +25,9 @@ import java.security.cert.CertificateException;
 
 public class MainActivity extends AppCompatActivity {
 
-    private Button verifyButton;
     private Puf puf;
     private Server server;
-    private String CRP = "CRP";
-    private Button keyGenButton;
-    private Button getKeyButton;
+    private final String CRP = "CRP";
 
 
     @RequiresApi(api = Build.VERSION_CODES.M)
@@ -43,33 +36,27 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        server = new StubServer(this,1);
+        server = new RealServer(this);
         puf = new StubPuf(1);
 
-        verifyButton = findViewById(R.id.verify);
-        verifyButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                verify();
-            }
-        });
+        Button verifyButton = findViewById(R.id.verify);
+        verifyButton.setOnClickListener(view -> verify());
 
-        keyGenButton = findViewById(R.id.keyGen);
-        keyGenButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                genKeyPair();
-            }
-        });
+        Button keyGenButton = findViewById(R.id.keyGen);
+        keyGenButton.setOnClickListener(view -> genKeyPair());
 
-        getKeyButton = findViewById(R.id.printKey);
-        getKeyButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                getKey();
-            }
-        });
+        Button svButton = findViewById(R.id.signVerifyButton);
+        svButton.setOnClickListener(view -> signAndVerify());
 
+        Button sendPkButton = findViewById(R.id.sendPkButton);
+        sendPkButton.setOnClickListener(view -> sendPk());
+
+    }
+
+    private void sendPk() {
+        KeyStore.Entry entry = getKeyEntry();
+        byte[] pk = ((KeyStore.PrivateKeyEntry) entry).getCertificate().getPublicKey().getEncoded();
+        server.sendPk(pk, () -> Log.i("pkResp","Done"));
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
@@ -83,62 +70,56 @@ public class MainActivity extends AppCompatActivity {
         }
 
         try {
+            assert kpg != null;
             kpg.initialize(new KeyGenParameterSpec.Builder(
                     "test",
                     KeyProperties.PURPOSE_SIGN | KeyProperties.PURPOSE_VERIFY)
                     .setDigests(KeyProperties.DIGEST_SHA256, KeyProperties.DIGEST_SHA512)
                     .setKeySize(2048)
+                    .setSignaturePaddings(KeyProperties.SIGNATURE_PADDING_RSA_PSS)
                     .build());
         } catch (InvalidAlgorithmParameterException e) {
             e.printStackTrace();
         }
 
-        KeyPair keyPair = kpg.generateKeyPair();
+        kpg.generateKeyPair();
         // Log.i("Key",keyPair.toString());
     }
-
-    private void getKey(){
-        KeyStore keyStore = null;
+    public KeyStore.Entry getKeyEntry(){
+        KeyStore ks;
         try {
-            keyStore = KeyStore.getInstance("AndroidKeyStore");
-        } catch (KeyStoreException e) {
+            ks = KeyStore.getInstance("AndroidKeyStore");
+            ks.load(null);
+            KeyStore.Entry entry = ks.getEntry("test", null);
+            if (!(entry instanceof KeyStore.PrivateKeyEntry)) {
+                Log.w("pkfail", "Not an instance of a PrivateKeyEntry");
+            }
+            return entry;
+        } catch (KeyStoreException | CertificateException | IOException | NoSuchAlgorithmException | UnrecoverableEntryException e) {
             e.printStackTrace();
         }
-        try {
-            keyStore.load(null);
-        } catch (CertificateException | IOException | NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        }
-        KeyStore.Entry entry = null;
-        try {
-            entry = keyStore.getEntry("test", null);
-            PrivateKey privateKey = ((KeyStore.PrivateKeyEntry) entry).getPrivateKey();
-            Log.i("Key",privateKey.toString());
-            PublicKey publicKey = keyStore.getCertificate("test").getPublicKey();
-            Log.i("Key",publicKey.toString());
-            signAndVerify(privateKey,publicKey);
-        } catch (KeyStoreException | NoSuchAlgorithmException | UnrecoverableEntryException e) {
-            e.printStackTrace();
-        }
-
+        return null;
     }
 
-    public void signAndVerify(PrivateKey prvKey, PublicKey pk){
-        Signature s = null;
+    public void signAndVerify(){
         try {
-            s = Signature.getInstance("SHA256withRSA/PSS");
-            s.initSign(prvKey);
+            KeyStore.Entry entry = getKeyEntry();
+            // Real MSG
+            Signature s = Signature.getInstance("SHA256withRSA/PSS");
             String msg = "skrt";
             byte[] data = msg.getBytes();
+            Log.i("pkfail",((KeyStore.PrivateKeyEntry) entry).getPrivateKey().toString());
+            s.initSign(((KeyStore.PrivateKeyEntry) entry).getPrivateKey());
             s.update(data);
             byte[] signature = s.sign();
-            Log.i("Sig",signature.toString());
 
+            // Verify
+            Signature sV = Signature.getInstance("SHA256withRSA/PSS");
+            sV.initVerify(((KeyStore.PrivateKeyEntry) entry).getCertificate());
+            sV.update(data);
+            boolean valid = sV.verify(signature);
+            Log.i("valid", String.valueOf(valid));
 
-            s.initVerify(pk);
-            s.update(signature);
-            boolean valid = s.verify(signature);
-            Log.i("Sig", String.valueOf(valid));
 
         } catch (NoSuchAlgorithmException | InvalidKeyException | SignatureException e) {
             e.printStackTrace();
@@ -147,23 +128,12 @@ public class MainActivity extends AppCompatActivity {
 
     private void verify() {
         int pufId = puf.getPufId();
-        server.getChallenge(pufId, new ChallengeVolleyCallback() {
-            @Override
-            public void onSuccess(int challenge) {
-                Log.i(CRP, "Challenge: " + challenge);
-                int response = puf.doChallenge(challenge);
-                Log.i(CRP, "Response: " + response);
-                server.verify(pufId, challenge, response, new VerifyVolleyCallback() {
-                    @Override
-                    public void onSuccess(boolean verified) {
-                        Log.i(CRP, "Verified: " + verified);
-                    }
-                });
-            }
+        server.getChallenge(pufId, challenge -> {
+            Log.i(CRP, "Challenge: " + challenge);
+            int response = puf.doChallenge(challenge);
+            Log.i(CRP, "Response: " + response);
+            server.verify(pufId, challenge, response, verified -> Log.i(CRP, "Verified: " + verified));
         });
-        // int response = puf.doChallenge(challenge);
-        // boolean verified = server.verify(pufId,challenge,response);
-        // System.out.println(pufId+ " " + challenge+ " " + response + " " + verified);
     }
 
 
