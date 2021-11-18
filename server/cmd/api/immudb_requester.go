@@ -10,6 +10,7 @@ import (
 	"github.com/codenotary/immudb/pkg/api/schema"
 	"github.com/codenotary/immudb/pkg/client"
 	immuclient "github.com/codenotary/immudb/pkg/client"
+	"github.com/codenotary/immudb/pkg/stdlib"
 	"google.golang.org/grpc/metadata"
 )
 
@@ -59,7 +60,27 @@ func (immudbRequester ImmudbRequester) verifyChallenge(pufID int, challenge int,
 }
 
 func (immudbRequester ImmudbRequester) commenceDatabase(){
-	initiateDatabase(immudbRequester.serverConfig)
+	// SQL Commands for the database initiatization -- Create tables for users and devices and storage for keys
+	var commands []string
+	commands = append(commands, "CREATE TABLE IF NOT EXISTS devices(pid INTEGER, owner VARCHAR[256], challenge_counter INTEGER, state VARCHAR, PRIMARY KEY pid);")
+	commands = append(commands, "CREATE TABLE IF NOT EXISTS users(id VARCHAR[256], first_name VARCHAR, last_name VARCHAR, phone_number INTEGER, email VARCHAR, PRIMARY KEY id);")
+	commands = append(commands, "CREATE TABLE IF NOT EXISTS user_keys(id INTEGER AUTO_INCREMENT, uuid VARCHAR[256], public_key VARCHAR[1024], PRIMARY KEY id);")
+	
+	// Connect to db
+	opts := client.DefaultOptions()
+	opts.Username = immudbRequester.serverConfig.db_username
+	opts.Password = immudbRequester.serverConfig.db_password
+	opts.Database = "defaultdb"
+	opts.Address = immudbRequester.serverConfig.db_addr
+	opts.Port = immudbRequester.serverConfig.db_port
+	
+	db := stdlib.OpenDB(opts)
+	defer db.Close()
+	
+	//Run through commands 
+	for _, command := range commands{
+		_, _ = db.ExecContext(context.TODO(), command)
+	}
 }
 
 func (immudbRequester ImmudbRequester) initiatePuf(id int){
