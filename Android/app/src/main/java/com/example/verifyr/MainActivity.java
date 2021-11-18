@@ -7,6 +7,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyProperties;
+import android.util.Base64;
 import android.util.Log;
 import android.widget.Button;
 
@@ -22,9 +23,9 @@ import java.security.Signature;
 import java.security.SignatureException;
 import java.security.UnrecoverableEntryException;
 import java.security.cert.CertificateException;
+import java.util.Arrays;
 
 public class MainActivity extends AppCompatActivity {
-
     private Puf puf;
     private Server server;
     private final String CRP = "CRP";
@@ -55,8 +56,10 @@ public class MainActivity extends AppCompatActivity {
 
     private void sendPk() {
         KeyStore.Entry entry = getKeyEntry();
+
         byte[] pk = ((KeyStore.PrivateKeyEntry) entry).getCertificate().getPublicKey().getEncoded();
-        server.sendPk(pk, () -> Log.i("pkResp","Done"));
+        String publicKeyString = Base64.encodeToString(pk, 2);
+        server.sendPk(publicKeyString, () -> Log.i("pkResp","Done"));
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
@@ -112,6 +115,7 @@ public class MainActivity extends AppCompatActivity {
             s.initSign(((KeyStore.PrivateKeyEntry) entry).getPrivateKey());
             s.update(data);
             byte[] signature = s.sign();
+            System.out.println(Base64.encodeToString(signature, 2));
 
             // Verify
             Signature sV = Signature.getInstance("SHA256withRSA/PSS");

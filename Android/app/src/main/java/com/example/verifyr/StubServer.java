@@ -26,7 +26,7 @@ public class StubServer implements Server{
     }
 
     @Override
-    public void sendPk(byte[] pk, PkCallback callback) {
+    public void sendPk(String pk, PkCallback callback) {
 
     }
 

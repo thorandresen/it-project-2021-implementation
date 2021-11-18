@@ -81,7 +81,7 @@ public class RealServer implements Server{
     }
 
     @Override
-    public void sendPk(byte[] pk, PkCallback callback) {
+    public void sendPk(String pk, PkCallback callback) {
         String url = "https://ta.anderswiggers.dk/create-user";
 
         Map<String, Object> params = new HashMap<String, Object>();
