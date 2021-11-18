@@ -29,14 +29,22 @@
         app:layout_constraintTop_toBottomOf="@+id/verify" />
 
     <Button
-        android:id="@+id/printKey"
+        android:id="@+id/signVerifyButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Print Key"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:text="SV"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/keyGen"
-        app:layout_constraintVertical_bias="0.234" />
+        app:layout_constraintTop_toBottomOf="@+id/keyGen" />
+
+    <Button
+        android:id="@+id/sendPkButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Button"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/signVerifyButton" />
 </androidx.constraintlayout.widget.ConstraintLayout>

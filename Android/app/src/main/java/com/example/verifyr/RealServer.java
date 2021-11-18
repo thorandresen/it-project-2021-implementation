@@ -4,11 +4,13 @@ import android.content.Context;
 import android.util.Log;
 
 import com.android.volley.AuthFailureError;
+import com.android.volley.NetworkResponse;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.VolleyLog;
+import com.android.volley.toolbox.HttpHeaderParser;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
@@ -17,6 +19,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
+import java.util.HashMap;
+import java.util.Map;
 
 public class RealServer implements Server{
 
@@ -52,50 +56,55 @@ public class RealServer implements Server{
     @Override
     public void verify(int pufID, int challenge, int response, final VerifyVolleyCallback callback) {
         String url = "https://ta.anderswiggers.dk/verify";
-        RequestQueue queue = Volley.newRequestQueue(context);
 
-        JSONObject jsonBody = new JSONObject();
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("id", pufID);
+        params.put("challenge", challenge);
+        params.put("response", response);
 
-        try {
-            jsonBody.put("id", pufID);
-            jsonBody.put("challenge", challenge);
-            jsonBody.put("response", response);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        final String mRequestBody = jsonBody.toString();
+        JSONObject jsonObject = new JSONObject(params);
 
-
-        StringRequest stringRequest = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
-            @Override
-            public void onResponse(String response) {
-                callback.onSuccess(Boolean.valueOf(response));
-            }
-        }, new Response.ErrorListener() {
+        JsonObjectRequest postRequest = new JsonObjectRequest(Request.Method.POST, url, jsonObject,
+                new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        Log.i("skrt",response.toString());
+                        callback.onSuccess(true);
+                    }
+                }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                Log.e("LOG_RESPONSE", error.toString());
+                Log.i("skrt",error.toString());
             }
-        }) {
+        });
+        queue.add(postRequest);
+    }
+
+    @Override
+    public void sendPk(byte[] pk, PkCallback callback) {
+        String url = "https://ta.anderswiggers.dk/create-user";
+
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("public_key", pk);
+        params.put("uuid", 1);
+        params.put("mitID_token", 1);
+        JSONObject jsonObject = new JSONObject(params);
+
+        JsonObjectRequest postRequest = new JsonObjectRequest(Request.Method.POST, url, jsonObject,
+                new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        Log.i("skrt",response.toString());
+                        callback.onSuccess();
+                    }
+                }, new Response.ErrorListener() {
             @Override
-            public String getBodyContentType() {
-                return "application/json; charset=utf-8";
+            public void onErrorResponse(VolleyError error) {
+                Log.i("skrt",error.toString());
             }
+        });
+        queue.add(postRequest);
 
-            @Override
-            public byte[] getBody() throws AuthFailureError {
-                try {
-                    return mRequestBody == null ? null : mRequestBody.getBytes("utf-8");
-                } catch (UnsupportedEncodingException uee) {
-                    VolleyLog.wtf("Unsupported Encoding while trying to get the bytes of %s using %s", mRequestBody, "utf-8");
-                    return null;
-                }
-            }
-
-        };
-
-// Access the RequestQueue through your singleton class.
-        queue.add(stringRequest);
     }
 }
 
