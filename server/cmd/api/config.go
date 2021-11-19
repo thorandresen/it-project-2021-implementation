@@ -6,6 +6,14 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// Configuration structure for the server, holds:
+// env			: Status of the env i.e Production | Server | dev etc.
+// server_addr 	: Address of the API i.e. localhost
+// server_port	: Port of the API i.e 4000
+// db_addr		: Address to database
+// db_port		: port to database
+// db_username	: Database access username
+// db_password	: Database access password
 type ServerConfig struct{
 	env string
 	server_addr string
@@ -16,6 +24,8 @@ type ServerConfig struct{
 	db_password string
 }
 
+// Imorting config as yaml file from a given path
+// Returns instace of ServerConfig Object.
 func importConfig(path string) ServerConfig {
 	if path == "" { path = "secret.yaml" }
 	yfile, _ := ioutil.ReadFile("secret.yaml")

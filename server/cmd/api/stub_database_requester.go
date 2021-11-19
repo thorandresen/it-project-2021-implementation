@@ -20,5 +20,6 @@ func (stubRequester StubRequester) initiatePuf(int) {
 	
 }
 
-func (stubRequester StubRequester) storeIdentity(id string, pk string ) {
+func (stubRequester StubRequester) storeIdentity(id string, pk string ) bool{
+	return true
 }

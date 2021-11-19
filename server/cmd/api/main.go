@@ -27,14 +27,13 @@ func main() {
 
 	//Setup Routers 
 	router := gin.Default()
-    router.GET("/verify", verifyChallenge)
+    router.POST("/verify", verifyChallenge)
 	router.GET("/challenge/:challenge",getChallenge)
-	router.GET("/release/:id",releaseID)
+	router.POST("/release/:id",releaseID)
 	router.POST("/init/:id",facotoryInitPuf)
 	router.POST("/create-user",createNewUser)
 	router.POST("/transfer/request",requestTransfer)
 	router.POST("/transfer/accept",acceptTransfer)
-	router.POST("/jsontest",testJson)
 	host := config.server_addr + ":" + strconv.Itoa(config.server_port)
 	fmt.Println(host)
     router.Run(host)
@@ -47,21 +46,6 @@ func getChallenge(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, challenge)
 }
 
-type Login struct {
-	User     string `form:"user" json:"user" xml:"user"  binding:"required"`
-	Password string `form:"password" json:"password" xml:"password" binding:"required"`
-}
-
-// Test json
-func testJson(c *gin.Context){
-	json := Login{}
-	if err := c.ShouldBindJSON(&json); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-	fmt.Printf("username: %s, pw: %s",json.User,json.Password)
-	c.JSON(http.StatusAccepted,&json)
-}
 
 type ChallengeJSON struct {
 	Id int `json:"id" binding:"required"`
@@ -76,9 +60,11 @@ func verifyChallenge(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	fmt.Printf("username: %d, pw: %d",data.Id,data.Challenge)
-	// _ = db.DatabaseRequester.verifyChallenge(data.Id,data.Challenge,data.Response)
-	c.JSON(http.StatusOK,&data)
+	verificationReponse := db.DatabaseRequester.verifyChallenge(data.Id,data.Challenge,data.Response)
+	if verificationReponse {
+		c.JSON(http.StatusOK,verificationReponse)	
+	}
+	c.JSON(http.StatusUnauthorized,verificationReponse)
 }
 
 // Release an given PUF id and sends a TWO step verification to a phone number.
@@ -100,14 +86,26 @@ func requestTransfer(c *gin.Context) {}
 // Accept an transfer of Ownsership
 func acceptTransfer(c *gin.Context) {}
 
+type CreateUserStructure struct{
+	UUID string `json:"uuid" binding:"required"`
+	Token string `json:"mitIdToken" binding:"required"`
+	PublicKey string `json:"publicKey" binding:"required"`
+}
+
 // Create a new user 
 func createNewUser(c *gin.Context) {
-	uuid := c.PostForm("uuid")
-	token := c.PostForm("mitID_token")
-	var validationToken = mitID_authtoken{token}
-	pk := c.PostForm("public_key")
-	if verifyMyId(uuid, validationToken) {
-		db.DatabaseRequester.storeIdentity(uuid,pk)
+	data := CreateUserStructure{}
+	if err := c.ShouldBindJSON(&data); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
 	}
-	c.IndentedJSON(http.StatusOK,pk)
+
+	var validationToken = mitID_authtoken{data.Token}
+	if verifyMyId(data.UUID, validationToken) {
+		err := db.DatabaseRequester.storeIdentity(data.UUID,data.PublicKey)
+		if err {
+			c.IndentedJSON(http.StatusUnauthorized,data)	
+		}
+	}
+	c.IndentedJSON(http.StatusOK,data)
 }

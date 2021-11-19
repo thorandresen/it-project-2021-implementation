@@ -1,18 +1,31 @@
 package main
 
-// Interface
+// Interface for the Database Requster
 type DatabaseRequester interface {
+	// Returns a challenge based on a PUF id
 	getChallenge(int) int
+
+	// Verify a challenge based on a PUF id, Challenge, and response
 	verifyChallenge(int,int,int) bool
+
+	// Commences a database should follow specifications ::
 	commenceDatabase()
+
+	// Initiate a PUF table in the database. Allow vendor to 
+	// enter C,R to a puf
 	initiatePuf(int)
-	storeIdentity(string,string)
+
+	// Stores the identity of a user based on a private key
+	// and a UUID from mitID.
+	storeIdentity(string,string) bool
 }
 // Strategy
 type databaseHandler struct {
 	DatabaseRequester DatabaseRequester
 }
 
+// Factory prodcing a Database requister based on `env` variable in config file.
+// Deafult value is stubrequester to make examples work.
 func databaseFactory(sc ServerConfig) databaseHandler {
 	switch sc.env {
 	case "production":
