@@ -7,8 +7,6 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
-
-	_ "github.com/go-sql-driver/mysql"
 )
 
 // Concrete SQL Implmentation
@@ -16,10 +14,10 @@ type MySQLRequester struct {
 	db *sql.DB
 }
 
-func main() {
-	mySqlReq := NewMySQLRequester()
-	mySqlReq.getChallenge(5)
-}
+// func main() {
+// 	mySqlReq := NewMySQLRequester()
+// 	mySqlReq.getChallenge(5)
+// }
 
 func NewMySQLRequester() (sqlRequester MySQLRequester) {
 	// Capture connection properties.
