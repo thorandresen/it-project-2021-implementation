@@ -124,10 +124,10 @@ func (immudbRequester ImmudbRequester) storeIdentity(uuid string, pk string) boo
 	}	
 	// check if user exist if not store user with info from token. Token not impl yet, random data
 	if !immudbRequester.userExist(uuid) {
-		storeUserCommand := "UPSERT INTO users(id,email,first_name,last_name,phone_number) VALUES (@uname,@email,@first,@last,@number)"
+		storeUserCommand := "UPSERT INTO users(uuid,email,first_name,last_name,phone_number) VALUES (@uname,@email,@first,@last,@number)"
 		_, err := immudbRequester.client.SQLExec(immudbRequester.context,storeUserCommand,map[string]interface{}{"uname": uuid, "email": "Joe","first":"skirt","last":"skrski","number":23})
 		if err != nil {
-			panic(err)
+			return false
 		}
 	}
 	return true
@@ -136,7 +136,7 @@ func (immudbRequester ImmudbRequester) storeIdentity(uuid string, pk string) boo
 // Helper function, not part of framework - could be done easier with mongo or sql
 // Check if a users exist in the database with the unqire UUID
 func (immudbRequester ImmudbRequester) userExist(uuid string) bool {
-	command := "SELECT id FROM users WHERE id = @uname;"
+	command := "SELECT uuid FROM users WHERE uuid = @uname;"
 	res, err:= immudbRequester.client.SQLQuery(immudbRequester.context,command,map[string]interface{}{"uname": uuid},false)
 	if err != nil {
 		panic(err)

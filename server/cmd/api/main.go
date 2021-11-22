@@ -102,10 +102,11 @@ func createNewUser(c *gin.Context) {
 
 	var validationToken = mitID_authtoken{data.Token}
 	if verifyMyId(data.UUID, validationToken) {
-		err := db.DatabaseRequester.storeIdentity(data.UUID,data.PublicKey)
-		if err {
-			c.IndentedJSON(http.StatusUnauthorized,data)	
+		success := db.DatabaseRequester.storeIdentity(data.UUID,data.PublicKey)
+		if !success{
+			c.JSON(http.StatusUnauthorized,data)	
+			return
 		}
 	}
-	c.IndentedJSON(http.StatusOK,data)
+	c.JSON(http.StatusOK,data)
 }
