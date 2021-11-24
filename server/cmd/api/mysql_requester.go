@@ -23,7 +23,7 @@ type MySQLRequester struct {
 func main() {
 	mySqlReq := NewMySQLRequester()
 	mySqlReq.commenceDatabase()
-	// mySqlReq.initiatePuf(1)
+	mySqlReq.initiatePuf(1)
 }
 
 func NewMySQLRequester() (sqlRequester MySQLRequester) {
@@ -108,16 +108,60 @@ func (mySqlRequester MySQLRequester) initiatePuf(id int) {
 	}
 }
 
-func (mySqlRequester MySQLRequester) storeIdentity(uuid string, pk string) {
-
+func (mySqlRequester MySQLRequester) storeIdentity(uuid string, pk string) bool {
+	// check if users key exist, if not store the key with the uuid
+	if !mySqlRequester.userKeyExits(uuid, pk, mySqlRequester) {
+		storePKCommand := "INSERT INTO user_keys(uuid,public_key) VALUES (@uuid,@pk)"
+		_, err := mySqlRequester.db.ExecContext(mySqlRequester.context, storePKCommand, map[string]interface{}{"uuid": uuid, "pk": pk})
+		if err != nil {
+			return false
+		}
+	}
+	// check if user exist if not store user with info from token. Token not impl yet, random data
+	if !mySqlRequester.userExist(uuid) {
+		storeUserCommand := "UPSERT INTO users(uuid,email,first_name,last_name,phone_number) VALUES (@uname,@email,@first,@last,@number)"
+		_, err := mySqlRequester.db.ExecContext(mySqlRequester.context, storeUserCommand, map[string]interface{}{"uname": uuid, "email": "Joe", "first": "skirt", "last": "skrski", "number": 23})
+		if err != nil {
+			return false
+		}
+	}
+	return true
 }
 
 func (mySqlRequester MySQLRequester) userExist(uuid string) bool {
-
-	return true
+	command := "SELECT uuid FROM users WHERE uuid = @uname;"
+	res, err := mySqlRequester.db.ExecContext(mySqlRequester.context, command, map[string]interface{}{"uname": uuid}, false)
+	if err != nil {
+		panic(err)
+	} else {
+	}
+	i := 0
+	for _, r := range res.Rows {
+		for _, _ = range r.Values {
+			i++
+		}
+	}
+	if i > 0 {
+		return true
+	}
+	return false
 }
 
 func (mySqlRequester MySQLRequester) userKeyExits(uuid string, key string, sqlRequester MySQLRequester) bool {
-
-	return true
+	command := "SELECT public_key FROM user_keys WHERE uuid = @uname AND public_key = @ukey;"
+	res, err := mySqlRequester.db.ExecContext(mySqlRequester.context, command, map[string]interface{}{"uname": uuid, "ukey": key}, false)
+	if err != nil {
+		panic(err)
+	} else {
+	}
+	i := 0
+	for _, r := range res.Rows {
+		for _, _ = range r.Values {
+			i++
+		}
+	}
+	if i > 0 {
+		return true
+	}
+	return false
 }
