@@ -20,10 +20,17 @@ type MySQLRequester struct {
 	context context.Context
 }
 
+type devices struct {
+	pid               string
+	owner             string
+	challenge_counter int
+}
+
 func main() {
 	mySqlReq := NewMySQLRequester()
 	mySqlReq.commenceDatabase()
-	mySqlReq.initiatePuf(1)
+	mySqlReq.testQuery()
+	// mySqlReq.initiatePuf(1)
 }
 
 func NewMySQLRequester() (sqlRequester MySQLRequester) {
@@ -37,7 +44,7 @@ func NewMySQLRequester() (sqlRequester MySQLRequester) {
 	// }
 	// Get a database handle.
 	var err error
-	db, err := sql.Open("mysql", "thor:admin@tcp(127.0.0.1:3306)/defaultdb")
+	db, err := sql.Open("mysql", "thor:admin@tcp(127.0.0.1:3306)/defaultdb?charset=utf8&autocommit=true")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -80,13 +87,40 @@ func (mySqlRequester MySQLRequester) commenceDatabase() {
 
 	db := mySqlRequester.db
 	// defer db.Close()
+	tx, _ := mySqlRequester.db.BeginTx(mySqlRequester.context, &sql.TxOptions{})
 
 	//Run through commands
 	for _, command := range commands {
-		_, _ = db.ExecContext(mySqlRequester.context, command)
+		_, err := db.ExecContext(mySqlRequester.context, command)
+
+		if err != nil {
+			panic(err)
+		}
+
 	}
 
+	tx.Commit()
+
 	fmt.Println("Commenced database")
+}
+
+func (mySqlRequester MySQLRequester) testQuery() {
+	// SQL Commands for the database initiatization -- Create tables for users and devices and storage for keys
+
+	command := "SHOW TABLES LIKE 'devices';"
+	var device string
+
+	//Run through commands
+	res, err := mySqlRequester.db.Query(command)
+
+	if err != nil {
+		panic(err)
+	}
+
+	res.Scan(&device)
+
+	fmt.Println(device)
+	fmt.Println("Tested queries")
 }
 
 func (mySqlRequester MySQLRequester) initiatePuf(id int) {
@@ -129,39 +163,39 @@ func (mySqlRequester MySQLRequester) storeIdentity(uuid string, pk string) bool 
 }
 
 func (mySqlRequester MySQLRequester) userExist(uuid string) bool {
-	command := "SELECT uuid FROM users WHERE uuid = @uname;"
-	res, err := mySqlRequester.db.ExecContext(mySqlRequester.context, command, map[string]interface{}{"uname": uuid}, false)
-	if err != nil {
-		panic(err)
-	} else {
-	}
-	i := 0
-	for _, r := range res.Rows {
-		for _, _ = range r.Values {
-			i++
-		}
-	}
-	if i > 0 {
-		return true
-	}
+	// command := "SELECT uuid FROM users WHERE uuid = @uname;"
+	// res, err := mySqlRequester.db.ExecContext(mySqlRequester.context, command, map[string]interface{}{"uname": uuid}, false)
+	// if err != nil {
+	// 	panic(err)
+	// } else {
+	// }
+	// i := 0
+	// for _, r := range res.Rows {
+	// 	for _, _ = range r.Values {
+	// 		i++
+	// 	}
+	// }
+	// if i > 0 {
+	// 	return true
+	// }
 	return false
 }
 
 func (mySqlRequester MySQLRequester) userKeyExits(uuid string, key string, sqlRequester MySQLRequester) bool {
-	command := "SELECT public_key FROM user_keys WHERE uuid = @uname AND public_key = @ukey;"
-	res, err := mySqlRequester.db.ExecContext(mySqlRequester.context, command, map[string]interface{}{"uname": uuid, "ukey": key}, false)
-	if err != nil {
-		panic(err)
-	} else {
-	}
-	i := 0
-	for _, r := range res.Rows {
-		for _, _ = range r.Values {
-			i++
-		}
-	}
-	if i > 0 {
-		return true
-	}
+	// command := "SELECT public_key FROM user_keys WHERE uuid = @uname AND public_key = @ukey;"
+	// res, err := mySqlRequester.db.ExecContext(mySqlRequester.context, command, map[string]interface{}{"uname": uuid, "ukey": key}, false)
+	// if err != nil {
+	// 	panic(err)
+	// } else {
+	// }
+	// i := 0
+	// for _, r := range res.Rows {
+	// 	for _, _ = range r.Values {
+	// 		i++
+	// 	}
+	// }
+	// if i > 0 {
+	// 	return true
+	// }
 	return false
 }
