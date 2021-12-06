@@ -15,8 +15,8 @@ public class StubPuf implements Puf{
 
 
     @Override
-    public int doChallenge(int challenge) {
-        return puf.get(challenge);
+    public String doChallenge(int challenge) {
+        return Util.hash(Integer.toString(id) + Integer.toString(challenge) );
     }
 
     @Override

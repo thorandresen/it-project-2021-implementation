@@ -1,33 +1,41 @@
 package com.example.verifyr;
 
 import android.content.Context;
+import android.util.Log;
 
-import java.util.HashMap;
+import java.security.InvalidKeyException;
+import java.security.KeyStore;
+import java.security.NoSuchAlgorithmException;
+import java.security.Signature;
 
 public class StubServer implements Server{
 
-    private final int pufId;
 
-    public StubServer(Context context, int pufId){
-        this.pufId = pufId;
+    public StubServer(Context context){
+
     }
     @Override
     public void getChallenge(int pufID,final ChallengeVolleyCallback callback) {
-        callback.onSuccess(pufID*4);
+        callback.onSuccess(5);
     }
 
     @Override
-    public void verify(int pufID, int challenge, int response, VerifyVolleyCallback callback) {
-//        if(response==challenge/2){
-//            callback.onSuccess(true);
-//        }else{
-//            callback.onSuccess(false);
-//        }
+    public void verify(int pufID, int challenge, String response, VerifyVolleyCallback callback) {
+        callback.onSuccess(response.equals(Util.hash(Integer.toString(pufID) + Integer.toString(challenge))));
     }
 
     @Override
-    public void sendPk(String pk, PkCallback callback) {
+    public void sendPk(PkCallback callback) {
+    }
 
+    @Override
+    public void requestOwnership(int pufID, int buyerId,TransferCallback callback) {
+        callback.onSuccess("Transfer Requested");
+    }
+
+    @Override
+    public void transferOwnership(int pufID, int buyerId,TransferCallback callback) {
+        callback.onSuccess("Ownership transferred");
     }
 
 }

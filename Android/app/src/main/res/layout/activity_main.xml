@@ -7,15 +7,25 @@
     tools:context=".MainActivity">
 
     <Button
+        android:id="@+id/transferButton"
+        android:layout_width="191dp"
+        android:layout_height="57dp"
+        android:layout_marginTop="28dp"
+        android:text="Transfer"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.515"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/requestButton" />
+
+    <Button
         android:id="@+id/verify"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="164dp"
+        android:layout_width="174dp"
+        android:layout_height="58dp"
+        android:layout_marginTop="44dp"
         android:text="Verify"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@+id/transferButton" />
 
     <Button
         android:id="@+id/keyGen"
@@ -29,22 +39,22 @@
         app:layout_constraintTop_toBottomOf="@+id/verify" />
 
     <Button
-        android:id="@+id/signVerifyButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="SV"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.498"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/keyGen" />
-
-    <Button
         android:id="@+id/sendPkButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Button"
+        android:text="Send PK"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <Button
+        android:id="@+id/requestButton"
+        android:layout_width="195dp"
+        android:layout_height="59dp"
+        android:layout_marginTop="76dp"
+        android:text="Request"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.507"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/signVerifyButton" />
+        app:layout_constraintTop_toTopOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>
