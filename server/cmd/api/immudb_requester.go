@@ -2,9 +2,9 @@ package main
 
 import (
 	"context"
+	"crypto/sha1"
 	"fmt"
 	"log"
-	"math/rand"
 	"strconv"
 
 	"github.com/codenotary/immudb/pkg/api/schema"
@@ -105,9 +105,17 @@ func (immudbRequester ImmudbRequester) initiatePuf(id int){
 	if err != nil {
 		panic(err)
 	}
-	r := rand.New(rand.NewSource(int64(id)))
-	for i := 0; i < 10; i++ {
-		command := "UPSERT INTO puf_" + strconv.Itoa(id) + "(challenge, response) VALUES (" + strconv.Itoa(i) + "," + strconv.Itoa(r.Int()) + ")"
+	h := sha1.New()
+	for i := 0; i < 50000; i++ {
+
+		s := strconv.Itoa(id) + strconv.Itoa(i)
+		h.Write([]byte(s))
+		bs := string(h.Sum(nil))
+
+		command := "UPSERT INTO puf_" + strconv.Itoa(id) + "(challenge, response) VALUES (" + strconv.Itoa(i) + "," + bs + ")"
+		if i % 500 == 0 {
+			fmt.Println(command)
+		}
 		immudbRequester.client.SQLExec(immudbRequester.context,command,nil)	
 	}
 }
