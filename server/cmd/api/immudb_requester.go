@@ -53,14 +53,14 @@ func (immudbRequester ImmudbRequester) getChallenge(pufID int) int {
 
 // Verify Challengede and returns bool based on verification. Always return 
 // on erronous database lookups.
-func (immudbRequester ImmudbRequester) verifyChallenge(pufID int, challenge int, response int) bool {
+func (immudbRequester ImmudbRequester) verifyChallenge(pufID int, challenge int, response string) bool {
 	requestChallenge := "SELECT response FROM puf_" + strconv.Itoa(pufID) + " WHERE challenge = " + strconv.Itoa(challenge)
 	res, err := immudbRequester.client.SQLQuery(immudbRequester.context,requestChallenge,nil,true)
 	if err != nil {
 		return false
 	}
-	storedResponse, _ := strconv.Atoi(schema.RenderValue(res.Rows[0].Values[0].Value))
-	if (storedResponse != 0 && storedResponse == response){
+	storedResponse := schema.RenderValue(res.Rows[0].Values[0].Value)
+	if (storedResponse != "0" && storedResponse == response){
 		// TODO increment counter in a meaningful manner
 		requestBurnChallenge := "UPSERT INTO puf_" + strconv.Itoa(pufID) + "(challenge, response) VALUES (" + strconv.Itoa(challenge) +",0)"
 		immudbRequester.client.SQLExec(immudbRequester.context,requestBurnChallenge,nil)	
@@ -98,7 +98,7 @@ func (immudbRequester ImmudbRequester) commenceDatabase(){
 // ATM initate random R based on seed which is ID of puf
 // TODO: correctly init R from puf
 func (immudbRequester ImmudbRequester) initiatePuf(id int){
-	command := "CREATE TABLE IF NOT EXISTS puf_" + strconv.Itoa(id) + "(challenge INTEGER, response INTEGER, PRIMARY KEY challenge);"
+	command := "CREATE TABLE IF NOT EXISTS puf_" + strconv.Itoa(id) + "(challenge INTEGER, response VARCHAR[1024], PRIMARY KEY challenge);"
 	//params := map[string]interface{}{"id": 1}
 	//create database table for PUF with CR pairs
 	_, err := immudbRequester.client.SQLExec(immudbRequester.context,command,nil)
@@ -110,13 +110,18 @@ func (immudbRequester ImmudbRequester) initiatePuf(id int){
 
 		s := strconv.Itoa(id) + strconv.Itoa(i)
 		h.Write([]byte(s))
-		bs := string(h.Sum(nil))
+		bs := h.Sum(nil)
+		hash := fmt.Sprintf("%x",bs)
 
-		command := "UPSERT INTO puf_" + strconv.Itoa(id) + "(challenge, response) VALUES (" + strconv.Itoa(i) + "," + bs + ")"
+
+		command := "UPSERT INTO puf_" + strconv.Itoa(id) + "(challenge, response) VALUES (" + strconv.Itoa(i) + ",'" + hash + "')"
 		if i % 500 == 0 {
 			fmt.Println(command)
 		}
-		immudbRequester.client.SQLExec(immudbRequester.context,command,nil)	
+		_ , err := immudbRequester.client.SQLExec(immudbRequester.context,command,nil)	
+		if err != nil {
+			panic(err)
+		}
 	}
 }
 
