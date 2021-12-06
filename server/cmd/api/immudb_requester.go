@@ -120,8 +120,7 @@ func (immudbRequester ImmudbRequester) initiatePuf(id int){
 
 
 		command := "UPSERT INTO puf_" + strconv.Itoa(id) + "(challenge, response) VALUES (" + strconv.Itoa(i) + ",'" + hash + "')"
-		fmt.Println(command)
-		if i % 500 == 0 {
+		if i % 1000 == 0 {
 			fmt.Println(command)
 		}
 		_ , err := immudbRequester.client.SQLExec(immudbRequester.context,command,nil)	
