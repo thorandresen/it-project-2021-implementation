@@ -10,8 +10,7 @@ import (
 	"log"
 	"math/rand"
 	"strconv"
-
-	_ "github.com/go-sql-driver/mysql"
+	//_ "github.com/go-sql-driver/mysql"
 )
 
 // Concrete SQL Implmentation
@@ -26,12 +25,12 @@ type devices struct {
 	challenge_counter int
 }
 
-func main() {
-	mySqlReq := NewMySQLRequester()
-	mySqlReq.commenceDatabase()
-	mySqlReq.testQuery()
-	// mySqlReq.initiatePuf(1)
-}
+// func main() {
+// 	mySqlReq := NewMySQLRequester()
+// 	mySqlReq.commenceDatabase()
+// 	mySqlReq.testQuery()
+// 	// mySqlReq.initiatePuf(1)
+// }
 
 func NewMySQLRequester() (sqlRequester MySQLRequester) {
 	// Capture connection properties.
