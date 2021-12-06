@@ -110,9 +110,9 @@ func (immudbRequester ImmudbRequester) initiatePuf(id int){
 	if err != nil {
 		panic(err)
 	}
-	h := sha1.New()
+	
 	for i := 0; i < 50000; i++ {
-
+		h := sha1.New()
 		s := strconv.Itoa(id) + strconv.Itoa(i)
 		h.Write([]byte(s))
 		bs := h.Sum(nil)
@@ -120,6 +120,7 @@ func (immudbRequester ImmudbRequester) initiatePuf(id int){
 
 
 		command := "UPSERT INTO puf_" + strconv.Itoa(id) + "(challenge, response) VALUES (" + strconv.Itoa(i) + ",'" + hash + "')"
+		fmt.Println(command)
 		if i % 500 == 0 {
 			fmt.Println(command)
 		}
