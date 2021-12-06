@@ -42,7 +42,7 @@ func NewImmudbRequester(connector ServerConfig) (ir ImmudbRequester){
 
 // Get Challenge from database and return the value as int
 func (immudbRequester ImmudbRequester) getChallenge(pufID int) int {
-	command := "SELECT challenge_counter FROM devices WHERE pid =" + strconv.Itoa(pufID)
+	command := "SELECT challenge_counter FROM devices WHERE pid = '" + strconv.Itoa(pufID) + "'"
 	res, err := immudbRequester.client.SQLQuery(immudbRequester.context,command,nil,true)
 	if err != nil {
 		panic(err)
@@ -60,10 +60,15 @@ func (immudbRequester ImmudbRequester) verifyChallenge(pufID int, challenge int,
 		return false
 	}
 	storedResponse := schema.RenderValue(res.Rows[0].Values[0].Value)
+	storedResponse = storedResponse[1 : len(storedResponse)-1]
+
+
 	if (storedResponse != "0" && storedResponse == response){
 		// TODO increment counter in a meaningful manner
-		requestBurnChallenge := "UPSERT INTO puf_" + strconv.Itoa(pufID) + "(challenge, response) VALUES (" + strconv.Itoa(challenge) +",0)"
-		immudbRequester.client.SQLExec(immudbRequester.context,requestBurnChallenge,nil)	
+		//requestIncrement := "UPSERT INTO devices(challenge_counter) WHERE pid = '" + strconv.Itoa(pufID) + "' VALUES (" + strconv.Itoa(challenge+1) + ")"
+		//requestBurnChallenge := "UPSERT INTO puf_" + strconv.Itoa(pufID) + "(challenge, response) VALUES (" + strconv.Itoa(challenge) +",'0')"
+		//immudbRequester.client.SQLExec(immudbRequester.context,requestBurnChallenge,nil)
+		//immudbRequester.client.SQLExec(immudbRequester.context,requestIncrement,nil)		
 		return true
 	}
 	return false
