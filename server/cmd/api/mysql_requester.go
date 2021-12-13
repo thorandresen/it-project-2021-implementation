@@ -29,8 +29,10 @@ type devices struct {
 func main() {
 	mySqlReq := NewMySQLRequester()
 	mySqlReq.commenceDatabase()
-	mySqlReq.testQuery()
-	// mySqlReq.initiatePuf(1)
+	// mySqlReq.testQuery()
+	//mySqlReq.initiatePuf(2)
+	// mySqlReq.storeIdentity("hej2", "skrrtpapa2")
+	mySqlReq.getChallenge(2)
 }
 
 func NewMySQLRequester() (sqlRequester MySQLRequester) {
@@ -81,9 +83,10 @@ func (mySqlRequester MySQLRequester) verifyChallenge(pufID int, challenge int, r
 func (mySqlRequester MySQLRequester) commenceDatabase() {
 	// SQL Commands for the database initiatization -- Create tables for users and devices and storage for keys
 	var commands []string
-	commands = append(commands, "CREATE TABLE IF NOT EXISTS devices(pid VARCHAR[252], owner VARCHAR[252], challenge_counter INTEGER, state VARCHAR, PRIMARY KEY pid);")
-	commands = append(commands, "CREATE TABLE IF NOT EXISTS users(uuid VARCHAR[252], first_name VARCHAR, last_name VARCHAR, phone_number INTEGER, email VARCHAR, PRIMARY KEY uuid);")
-	commands = append(commands, "CREATE TABLE IF NOT EXISTS user_keys(id INTEGER AUTO_INCREMENT, uuid VARCHAR[252], public_key VARCHAR[1024], PRIMARY KEY id);")
+	commands = append(commands, `CREATE TABLE IF NOT EXISTS devices(pid varchar(252) primary key, owner varchar(252), challenge_counter integer, state varchar(252))`)
+	commands = append(commands, "CREATE TABLE IF NOT EXISTS users(uuid varchar(252) primary key, first_name varchar(252), last_name varchar(252), phone_number integer, email varchar(252))")
+	commands = append(commands, "CREATE TABLE IF NOT EXISTS user_keys(id integer primary key AUTO_INCREMENT, uuid varchar(252), public_key varchar(1024));")
+	//commands = append(commands, "DROP TABLE puf_2")
 
 	db := mySqlRequester.db
 	// defer db.Close()
@@ -91,16 +94,17 @@ func (mySqlRequester MySQLRequester) commenceDatabase() {
 
 	//Run through commands
 	for _, command := range commands {
-		_, err := db.ExecContext(mySqlRequester.context, command)
+		res, err := db.ExecContext(mySqlRequester.context, command)
 
 		if err != nil {
 			panic(err)
+		} else {
+			fmt.Println(res)
 		}
 
 	}
 
 	tx.Commit()
-
 	fmt.Println("Commenced database")
 }
 
@@ -110,6 +114,7 @@ func (mySqlRequester MySQLRequester) testQuery() {
 	command := "SHOW TABLES LIKE 'devices';"
 	var device string
 
+	tx, _ := mySqlRequester.db.BeginTx(mySqlRequester.context, &sql.TxOptions{})
 	//Run through commands
 	res, err := mySqlRequester.db.Query(command)
 
@@ -119,46 +124,62 @@ func (mySqlRequester MySQLRequester) testQuery() {
 
 	res.Scan(&device)
 
+	tx.Commit()
 	fmt.Println(device)
 	fmt.Println("Tested queries")
 }
 
 func (mySqlRequester MySQLRequester) initiatePuf(id int) {
-	command := "CREATE TABLE IF NOT EXISTS puf_" + strconv.Itoa(id) + "(challenge INTEGER, response INTEGER, PRIMARY KEY challenge);"
+	command := "CREATE TABLE IF NOT EXISTS puf_" + strconv.Itoa(id) + "(challenge integer primary key, response integer);"
 	//params := map[string]interface{}{"id": 1}
 	//create database table for PUF with CR pairs
+	tx, _ := mySqlRequester.db.BeginTx(mySqlRequester.context, &sql.TxOptions{})
+
 	_, err := mySqlRequester.db.ExecContext(mySqlRequester.context, command)
+
+	tx.Commit()
+
 	if err != nil {
 		panic(err)
 	}
-	r := rand.New(rand.NewSource(int64(id)))
+
+	// r := rand.New(rand.NewSource(int64(id)))
 	for i := 0; i < 10; i++ {
-		command := "UPSERT INTO puf_" + strconv.Itoa(id) + "(challenge, response) VALUES (" + strconv.Itoa(i) + "," + strconv.Itoa(r.Int()) + ")"
+		// fmt.Println(strconv.Itoa(r.Int()))
+		command := "INSERT INTO puf_" + strconv.Itoa(id) + "(challenge, response) VALUES(" + strconv.Itoa(i) + "," + strconv.Itoa(rand.Intn(10000000)) + ")"
 		_, err := mySqlRequester.db.ExecContext(mySqlRequester.context, command)
 
 		if err != nil {
 			panic(err)
 		}
 	}
+
+	tx.Commit()
+	fmt.Println("Iniated puf")
 }
 
 func (mySqlRequester MySQLRequester) storeIdentity(uuid string, pk string) bool {
+	tx, _ := mySqlRequester.db.BeginTx(mySqlRequester.context, &sql.TxOptions{})
 	// check if users key exist, if not store the key with the uuid
 	if !mySqlRequester.userKeyExits(uuid, pk, mySqlRequester) {
-		storePKCommand := "INSERT INTO user_keys(uuid,public_key) VALUES (@uuid,@pk)"
-		_, err := mySqlRequester.db.ExecContext(mySqlRequester.context, storePKCommand, map[string]interface{}{"uuid": uuid, "pk": pk})
+		storePKCommand := "INSERT INTO user_keys(uuid, public_key) VALUES (" + uuid + ", " + pk + ")"
+		_, err := mySqlRequester.db.ExecContext(mySqlRequester.context, storePKCommand)
 		if err != nil {
+			panic(err)
 			return false
 		}
 	}
-	// check if user exist if not store user with info from token. Token not impl yet, random data
-	if !mySqlRequester.userExist(uuid) {
-		storeUserCommand := "UPSERT INTO users(uuid,email,first_name,last_name,phone_number) VALUES (@uname,@email,@first,@last,@number)"
-		_, err := mySqlRequester.db.ExecContext(mySqlRequester.context, storeUserCommand, map[string]interface{}{"uname": uuid, "email": "Joe", "first": "skirt", "last": "skrski", "number": 23})
-		if err != nil {
-			return false
-		}
-	}
+	// // check if user exist if not store user with info from token. Token not impl yet, random data
+	// if !mySqlRequester.userExist(uuid) {
+	// 	storeUserCommand := "UPSERT INTO users(uuid,email,first_name,last_name,phone_number) VALUES (@uname,@email,@first,@last,@number)"
+	// 	_, err := mySqlRequester.db.ExecContext(mySqlRequester.context, storeUserCommand, map[string]interface{}{"uname": uuid, "email": "Joe", "first": "skirt", "last": "skrski", "number": 23})
+	// 	if err != nil {
+	// 		panic(err)
+	// 		return false
+	// 	}
+	// }
+	tx.Commit()
+	fmt.Println("User stored")
 	return true
 }
 
