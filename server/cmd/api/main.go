@@ -50,7 +50,7 @@ func getChallenge(c *gin.Context) {
 type ChallengeJSON struct {
 	Id int `json:"id" binding:"required"`
 	Challenge int `json:"challenge" binding:"required"`
-	Response int `json:"response" binding:"required"`
+	Response string `json:"response" binding:"required"`
 }
 
 // Verify a challange with a C,R from a given PUF ID

@@ -2,9 +2,9 @@ package main
 
 import (
 	"context"
+	"crypto/sha1"
 	"fmt"
 	"log"
-	"math/rand"
 	"strconv"
 
 	"github.com/codenotary/immudb/pkg/api/schema"
@@ -42,7 +42,7 @@ func NewImmudbRequester(connector ServerConfig) (ir ImmudbRequester){
 
 // Get Challenge from database and return the value as int
 func (immudbRequester ImmudbRequester) getChallenge(pufID int) int {
-	command := "SELECT challenge_counter FROM devices WHERE pid =" + strconv.Itoa(pufID)
+	command := "SELECT challenge_counter FROM devices WHERE pid = '" + strconv.Itoa(pufID) + "'"
 	res, err := immudbRequester.client.SQLQuery(immudbRequester.context,command,nil,true)
 	if err != nil {
 		panic(err)
@@ -53,17 +53,22 @@ func (immudbRequester ImmudbRequester) getChallenge(pufID int) int {
 
 // Verify Challengede and returns bool based on verification. Always return 
 // on erronous database lookups.
-func (immudbRequester ImmudbRequester) verifyChallenge(pufID int, challenge int, response int) bool {
+func (immudbRequester ImmudbRequester) verifyChallenge(pufID int, challenge int, response string) bool {
 	requestChallenge := "SELECT response FROM puf_" + strconv.Itoa(pufID) + " WHERE challenge = " + strconv.Itoa(challenge)
 	res, err := immudbRequester.client.SQLQuery(immudbRequester.context,requestChallenge,nil,true)
 	if err != nil {
 		return false
 	}
-	storedResponse, _ := strconv.Atoi(schema.RenderValue(res.Rows[0].Values[0].Value))
-	if (storedResponse != 0 && storedResponse == response){
+	storedResponse := schema.RenderValue(res.Rows[0].Values[0].Value)
+	storedResponse = storedResponse[1 : len(storedResponse)-1]
+
+
+	if (storedResponse != "0" && storedResponse == response){
 		// TODO increment counter in a meaningful manner
-		requestBurnChallenge := "UPSERT INTO puf_" + strconv.Itoa(pufID) + "(challenge, response) VALUES (" + strconv.Itoa(challenge) +",0)"
-		immudbRequester.client.SQLExec(immudbRequester.context,requestBurnChallenge,nil)	
+		//requestIncrement := "UPSERT INTO devices(challenge_counter) WHERE pid = '" + strconv.Itoa(pufID) + "' VALUES (" + strconv.Itoa(challenge+1) + ")"
+		//requestBurnChallenge := "UPSERT INTO puf_" + strconv.Itoa(pufID) + "(challenge, response) VALUES (" + strconv.Itoa(challenge) +",'0')"
+		//immudbRequester.client.SQLExec(immudbRequester.context,requestBurnChallenge,nil)
+		//immudbRequester.client.SQLExec(immudbRequester.context,requestIncrement,nil)		
 		return true
 	}
 	return false
@@ -98,17 +103,30 @@ func (immudbRequester ImmudbRequester) commenceDatabase(){
 // ATM initate random R based on seed which is ID of puf
 // TODO: correctly init R from puf
 func (immudbRequester ImmudbRequester) initiatePuf(id int){
-	command := "CREATE TABLE IF NOT EXISTS puf_" + strconv.Itoa(id) + "(challenge INTEGER, response INTEGER, PRIMARY KEY challenge);"
+	command := "CREATE TABLE IF NOT EXISTS puf_" + strconv.Itoa(id) + "(challenge INTEGER, response VARCHAR[1024], PRIMARY KEY challenge);"
 	//params := map[string]interface{}{"id": 1}
 	//create database table for PUF with CR pairs
 	_, err := immudbRequester.client.SQLExec(immudbRequester.context,command,nil)
 	if err != nil {
 		panic(err)
 	}
-	r := rand.New(rand.NewSource(int64(id)))
-	for i := 0; i < 10; i++ {
-		command := "UPSERT INTO puf_" + strconv.Itoa(id) + "(challenge, response) VALUES (" + strconv.Itoa(i) + "," + strconv.Itoa(r.Int()) + ")"
-		immudbRequester.client.SQLExec(immudbRequester.context,command,nil)	
+	
+	for i := 0; i < 50000; i++ {
+		h := sha1.New()
+		s := strconv.Itoa(id) + strconv.Itoa(i)
+		h.Write([]byte(s))
+		bs := h.Sum(nil)
+		hash := fmt.Sprintf("%x",bs)
+
+
+		command := "UPSERT INTO puf_" + strconv.Itoa(id) + "(challenge, response) VALUES (" + strconv.Itoa(i) + ",'" + hash + "')"
+		if i % 1000 == 0 {
+			fmt.Println(command)
+		}
+		_ , err := immudbRequester.client.SQLExec(immudbRequester.context,command,nil)	
+		if err != nil {
+			panic(err)
+		}
 	}
 }
 

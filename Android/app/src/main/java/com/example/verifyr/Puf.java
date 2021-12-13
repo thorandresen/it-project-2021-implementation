@@ -1,7 +1,7 @@
 package com.example.verifyr;
 
 public interface Puf {
-    int doChallenge(int challenge);
+    String doChallenge(int challenge);
 
     int getPufId();
 }

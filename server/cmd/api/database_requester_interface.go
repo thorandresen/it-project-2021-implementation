@@ -6,7 +6,7 @@ type DatabaseRequester interface {
 	getChallenge(int) int
 
 	// Verify a challenge based on a PUF id, Challenge, and response
-	verifyChallenge(int,int,int) bool
+	verifyChallenge(int,int,string) bool
 
 	// Commences a database should follow specifications ::
 	commenceDatabase()

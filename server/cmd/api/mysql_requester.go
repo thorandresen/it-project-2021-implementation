@@ -10,8 +10,7 @@ import (
 	"log"
 	"math/rand"
 	"strconv"
-
-	_ "github.com/go-sql-driver/mysql"
+	//_ "github.com/go-sql-driver/mysql"
 )
 
 // Concrete SQL Implmentation
