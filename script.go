@@ -2,12 +2,17 @@ package main
 
 import (
 	"bytes"
+	"crypto"
+	"crypto/rand"
+	"crypto/rsa"
 	"crypto/sha1"
+	"crypto/sha256"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 )
@@ -35,6 +40,7 @@ func calcResponse(c int, pufId int) (r string) {
 	r = fmt.Sprintf("%x", hash)
 	return
 }
+
 func verify(c int, pufId int, r string) (v bool) {
 
 	data, _ := json.Marshal(map[string]string{
@@ -76,13 +82,71 @@ func execute(pufId int) {
 	}
 }
 
+func requestOwnership() (v bool) {
+	signingString := "skrt"
+
+	sk, err := rsa.GenerateKey(rand.Reader, 2048)
+
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	hasher := sha256.New()
+	hasher.Write([]byte(signingString))
+
+	// Sign the string and return the encoded bytes
+	sigBytes, err := rsa.SignPSS(rand.Reader, sk, crypto.SHA256, hasher.Sum(nil), nil)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println(sigBytes)
+
+	data, _ := json.Marshal(map[string]string{
+		"sig": string(sigBytes),
+		"bid": "1",
+	})
+
+	resp, err := http.Post("https://ta.anrs.dk/transfer", "application/json", bytes.NewBuffer(data))
+	if err != nil {
+		fmt.Println(err)
+	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	v, err = strconv.ParseBool(string(body))
+	if err != nil {
+		log.Fatalln(err)
+	}
+	return
+
+	// Verify
+	// pk := &sk.PublicKey
+	// h := sha256.New()
+	// h.Write([]byte("skr"))
+	// d := h.Sum(nil)
+	// if rsa.VerifyPSS(pk, crypto.SHA256, d, sigBytes, nil) == nil {
+	// 	fmt.Print("Skkkrrtttt")
+	// } else {
+	// 	fmt.Print("pahhhh :(")
+	// }
+}
+
 // Main function
 func main() {
-	var pufId = 2
-	for i := 0; i < 4; i++ {
-		go execute(pufId)
-	}
-	for true {
-	}
+	// var pufId = 2
+	// for i := 0; i < 4; i++ {
+	// 	go execute(pufId)
+	// }
+	// for true {
+	// }
+	requestOwnership()
 
 }
