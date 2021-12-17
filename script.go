@@ -71,7 +71,6 @@ func execute(pufId int) {
 		counter++
 		if counter%100 == 0 {
 			fmt.Println("_________________________________________________________________________________")
-			fmt.Println(pufId)
 			fmt.Println(times)
 		}
 	}
