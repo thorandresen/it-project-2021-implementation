@@ -30,11 +30,12 @@ func main() {
 	mySqlReq := NewMySQLRequester()
 	mySqlReq.commenceDatabase()
 	// mySqlReq.testQuery()
-	//mySqlReq.initiatePuf(4)
-	//mySqlReq.storeIdentity("hej3", "skrrtpapa3")
-	mySqlReq.getChallenge(4)
-	//mySqlReq.createDevice("4", "hej3", "stille")
-	mySqlReq.verifyChallenge(4, 0, "af3e133428b9e25c55bc59fe534248e6a0c0f17b")
+	// mySqlReq.initiatePuf(4)
+	// mySqlReq.storeIdentity("hej3", "skrrtpapa3")
+	// mySqlReq.getChallenge(4)
+	// mySqlReq.createDevice("4", "hej3", "stille")
+	// mySqlReq.verifyChallenge(4, 0, "af3e133428b9e25c55bc59fe534248e6a0c0f17b")
+	mySqlReq.benchmark()
 }
 
 func NewMySQLRequester() (sqlRequester MySQLRequester) {
@@ -265,6 +266,29 @@ func (mySqlRequester MySQLRequester) createDevice(pid string, owner string, stat
 	if err != nil {
 		panic(err)
 	}
+
+	tx.Commit()
+}
+
+func (mySqlRequester MySQLRequester) benchmark() {
+	var timevar string
+
+	command := "SELECT BENCHMARK(1000000, (SELECT response FROM puf_4 WHERE challenge LIKE 0));"
+
+	tx, _ := mySqlRequester.db.BeginTx(mySqlRequester.context, &sql.TxOptions{})
+
+	res, err := mySqlRequester.db.Query(command)
+
+	if err != nil {
+		panic(err)
+		return
+	}
+
+	res.Next()
+
+	res.Scan(&timevar)
+
+	fmt.Println(timevar)
 
 	tx.Commit()
 }
