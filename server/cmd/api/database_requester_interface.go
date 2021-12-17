@@ -18,6 +18,12 @@ type DatabaseRequester interface {
 	// Stores the identity of a user based on a private key
 	// and a UUID from mitID.
 	storeIdentity(string,string) bool
+
+	// Confirms the buyer of a product
+	confirmBuyer()
+
+	// Updates the owner of a device 
+	updateOwner()
 }
 // Strategy
 type databaseHandler struct {
