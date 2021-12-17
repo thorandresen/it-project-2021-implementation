@@ -64,8 +64,9 @@ func verifyChallenge(c *gin.Context) {
 	verificationReponse := db.DatabaseRequester.verifyChallenge(id,challenge,data.Response)
 	if verificationReponse {
 		c.JSON(http.StatusOK,verificationReponse)	
+	} else {
+		c.JSON(http.StatusUnauthorized,verificationReponse)
 	}
-	c.JSON(http.StatusUnauthorized,verificationReponse)
 }
 
 // Release an given PUF id and sends a TWO step verification to a phone number.
