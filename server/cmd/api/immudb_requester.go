@@ -65,10 +65,11 @@ func (immudbRequester ImmudbRequester) verifyChallenge(pufID int, challenge int,
 
 	if (storedResponse != "0" && storedResponse == response){
 		// TODO increment counter in a meaningful manner
-		//requestIncrement := "UPSERT INTO devices(challenge_counter) WHERE pid = '" + strconv.Itoa(pufID) + "' VALUES (" + strconv.Itoa(challenge+1) + ")"
-		//requestBurnChallenge := "UPSERT INTO puf_" + strconv.Itoa(pufID) + "(challenge, response) VALUES (" + strconv.Itoa(challenge) +",'0')"
-		//immudbRequester.client.SQLExec(immudbRequester.context,requestBurnChallenge,nil)
-		//immudbRequester.client.SQLExec(immudbRequester.context,requestIncrement,nil)		
+
+		// requestIncrement := "UPSERT INTO devices(challenge_counter) WHERE pid = '" + strconv.Itoa(pufID) + "' VALUES (" + strconv.Itoa(challenge+1) + ")"
+		// requestBurnChallenge := "UPSERT INTO puf_" + strconv.Itoa(pufID) + "(challenge, response) VALUES (" + strconv.Itoa(challenge) +",'0')"
+		// immudbRequester.client.SQLExec(immudbRequester.context,requestBurnChallenge,nil)
+		// immudbRequester.client.SQLExec(immudbRequester.context,requestIncrement,nil)		
 		return true
 	}
 	return false

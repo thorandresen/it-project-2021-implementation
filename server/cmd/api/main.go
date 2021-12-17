@@ -46,13 +46,12 @@ func getChallenge(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, challenge)
 }
 
-
+// INPUT TO verifyChallenge
 type ChallengeJSON struct {
-	Id int `json:"id" binding:"required"`
-	Challenge int `json:"challenge" binding:"required"`
+	Id string `json:"id" binding:"required"`
+	Challenge string `json:"challenge" binding:"required"`
 	Response string `json:"response" binding:"required"`
 }
-
 // Verify a challange with a C,R from a given PUF ID
 func verifyChallenge(c *gin.Context) {
 	data := ChallengeJSON{}
@@ -60,7 +59,9 @@ func verifyChallenge(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	verificationReponse := db.DatabaseRequester.verifyChallenge(data.Id,data.Challenge,data.Response)
+	id, _ := strconv.Atoi(data.Id)
+	challenge, _ := strconv.Atoi(data.Challenge)
+	verificationReponse := db.DatabaseRequester.verifyChallenge(id,challenge,data.Response)
 	if verificationReponse {
 		c.JSON(http.StatusOK,verificationReponse)	
 	}
