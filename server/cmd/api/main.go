@@ -103,12 +103,12 @@ type ConfirmBuyerStuct struct{
 
 var requestTimes []int64
 func appendRequestTimeStamp (time int64) {
-	if len(requestTimes) == 10 {
+	if len(requestTimes) == 1000 {
 		sum := int64(0)
 		for i := 0; i < len(requestTimes); i++ {
 			sum += requestTimes[i]
 		}
-		avg := sum / 10
+		avg := sum / 1000
 
 		
 		var avgFloat float64 = float64(avg) / 1000000
