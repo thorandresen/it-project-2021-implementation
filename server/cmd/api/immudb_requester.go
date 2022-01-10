@@ -200,3 +200,12 @@ func (immudbRequester ImmudbRequester) userKeyExits(uuid string, key string) boo
 	}
 	return false 
 }
+
+
+func (immudbRequester ImmudbRequester) confirmBuyer() {
+
+}
+
+func (immudbRequester ImmudbRequester) updateOwner() {
+
+}
