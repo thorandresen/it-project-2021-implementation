@@ -63,8 +63,31 @@ type ChallengeJSON struct {
 	Challenge string `json:"challenge" binding:"required"`
 	Response string `json:"response" binding:"required"`
 }
+
+//Requiest timer for 
+var requestVerifyTimer[]int64
+func appendRequestTimeStampVerify (time int64) {
+	if len(requestVerifyTimer) == 1000 {
+		sum := int64(0)
+		for i := 0; i < len(requestVerifyTimer); i++ {
+			sum += requestVerifyTimer[i]
+		}
+		avg := sum / 1000
+
+		
+		var avgFloat float64 = float64(avg) / 1000000
+
+		log.Printf("REQUEST VERIFYCHALLENGE: Average latency last 1000 request: %fms",avgFloat)
+		requestTimes = nil
+	} else {
+		requestTimes = append(requestVerifyTimer, time)
+	}
+}
+
 // Verify a challange with a C,R from a given PUF ID
 func verifyChallenge(c *gin.Context) {
+	start := time.Now()
+
 	data := ChallengeJSON{}
 	if err := c.ShouldBindJSON(&data); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -74,9 +97,13 @@ func verifyChallenge(c *gin.Context) {
 	challenge, _ := strconv.Atoi(data.Challenge)
 	verificationReponse := db.DatabaseRequester.verifyChallenge(id,challenge,data.Response)
 	if verificationReponse {
-		c.JSON(http.StatusOK,verificationReponse)	
+		c.JSON(http.StatusOK,verificationReponse)
+		elapsed := time.Since(start).Milliseconds()
+		appendRequestTimeStampVerify(elapsed)	
 	} else {
 		c.JSON(http.StatusUnauthorized,verificationReponse)
+		elapsed := time.Since(start).Milliseconds()
+		appendRequestTimeStampVerify(elapsed)
 	}
 }
 
@@ -100,7 +127,7 @@ type ConfirmBuyerStuct struct{
 	Signature string `json:"signature" binding:"required"`
 }
 
-
+//Requiest timer for 
 var requestTimes []int64
 func appendRequestTimeStamp (time int64) {
 	if len(requestTimes) == 1000 {
