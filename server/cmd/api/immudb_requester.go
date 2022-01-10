@@ -219,7 +219,7 @@ func (immudbRequester ImmudbRequester) confirmBuyer(user_id string, signature st
 
 	encodedStr := ""
 
-	
+	// Exit if user don't exist
 	if len(res.Rows) > 0 {
 		if len(res.Rows[0].Values) > 0 {
 			encodedStr = schema.RenderValue(res.Rows[0].Values[0].Value)
@@ -231,23 +231,22 @@ func (immudbRequester ImmudbRequester) confirmBuyer(user_id string, signature st
 	}
 	
 
-	//fmt.Println(encodedStr)
-
+	//Decode public key
 	decodedStrAsByteSlice, err := base64.StdEncoding.DecodeString(encodedStr[1:len(encodedStr)-1])
     if err != nil {
         panic("malformed input")
     }
-    //fmt.Println(string(decodedStrAsByteSlice))
 
+	// Slice (n,e) by -
 	pk_sliced := strings.Split(string(decodedStrAsByteSlice),"-")
 	n := new(big.Int)
 	n, _ = n.SetString(pk_sliced[0],10)
 	e,_ := strconv.Atoi(pk_sliced[1])
 
+	// Create rsa PK
 	pk := &rsa.PublicKey{n,e}
-	//fmt.Println(pk)
-	
 
+	// Verify signature of pufID
 	h := sha256.New()
 	h.Write([]byte(pufID))
 	d := h.Sum(nil)

@@ -3,8 +3,10 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -88,8 +90,16 @@ type ConfirmBuyerStuct struct{
 	PufID string `json:"pufID" binding:"required"`
 	Signature string `json:"signature" binding:"required"`
 }
+
+
+
+
 // Request an transfer of Ownsership
 func requestTransfer(c *gin.Context) {
+
+	start := time.Now()
+
+
 	data := ConfirmBuyerStuct{}
 	if err := c.ShouldBindJSON(&data); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -99,12 +109,22 @@ func requestTransfer(c *gin.Context) {
 	if anser {
 		fmt.Println("verified")
 		c.JSON(http.StatusOK,data)
+
+		elapsed := time.Since(start)
+    	log.Printf("verified took %s", elapsed)
+
 		return
 	} else {
 		fmt.Println("bad signature")
 		c.JSON(http.StatusUnauthorized,data)
+		
+		elapsed := time.Since(start)
+    	log.Printf("bad signature took %s", elapsed)
+		
 		return
 	}
+
+
 }
 
 // Accept an transfer of Ownsership
