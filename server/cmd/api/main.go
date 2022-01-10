@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 
@@ -26,6 +27,14 @@ func main() {
 	db = databaseFactory(config)
 
 	db.DatabaseRequester.commenceDatabase()
+
+	file, err := os.OpenFile("request_logs.log.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.SetOutput(file)
+	log.Println("test")
+
 
 	//Setup Routers 
 	router := gin.Default()
@@ -92,7 +101,24 @@ type ConfirmBuyerStuct struct{
 }
 
 
+var requestTimes []int64
+func appendRequestTimeStamp (time int64) {
+	if len(requestTimes) == 10 {
+		sum := int64(0)
+		for i := 0; i < len(requestTimes); i++ {
+			sum += requestTimes[i]
+		}
+		avg := sum / 10
 
+		
+		var avgFloat float64 = float64(avg) / 1000000
+
+		log.Printf("Average latency last 1000 request: %fms",avgFloat)
+		requestTimes = nil
+	} else {
+		requestTimes = append(requestTimes, time)
+	}
+}
 
 // Request an transfer of Ownsership
 func requestTransfer(c *gin.Context) {
@@ -110,8 +136,9 @@ func requestTransfer(c *gin.Context) {
 		fmt.Println("verified")
 		c.JSON(http.StatusOK,data)
 
-		elapsed := time.Since(start)
-    	log.Printf("verified took %s", elapsed)
+		elapsed := time.Since(start).Milliseconds()
+		appendRequestTimeStamp(elapsed)
+    	//log.Printf("verified took %d", elapsed)
 
 		return
 	} else {
@@ -119,7 +146,8 @@ func requestTransfer(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized,data)
 		
 		elapsed := time.Since(start)
-    	log.Printf("bad signature took %s", elapsed)
+		appendRequestTimeStamp(int64(elapsed))
+		//log.Printf("bad signature took %s", elapsed)
 		
 		return
 	}
