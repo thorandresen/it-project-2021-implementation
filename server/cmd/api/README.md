@@ -12,6 +12,7 @@ db_addr: "ADDRESS OF DATABASE"      | String
 db_port: PORT OF DATABASE           | Integer
 db_username: "DATABASE USERNAME"    | String
 db_password: "DATABASE PASSWORD"    | String
+burn_puf_on_succes: "Burns PUF on A"| Boolean
 ```
 Another filename can be used by passing the name to the binary on execution with the `-path` flag, i.e. `./api -path very-secret.yaml`
 

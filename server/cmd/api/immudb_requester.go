@@ -3,15 +3,22 @@ package main
 import (
 	"context"
 	"crypto/sha1"
+	"encoding/base64"
 	"fmt"
 	"log"
+	"math/big"
 	"strconv"
+	"strings"
 
 	"github.com/codenotary/immudb/pkg/api/schema"
 	"github.com/codenotary/immudb/pkg/client"
 	immuclient "github.com/codenotary/immudb/pkg/client"
 	"github.com/codenotary/immudb/pkg/stdlib"
 	"google.golang.org/grpc/metadata"
+
+	"crypto"
+	"crypto/rsa"
+	"crypto/sha256"
 )
 
 // immudb Requster struck, uses a immudb client for calls.
@@ -202,8 +209,53 @@ func (immudbRequester ImmudbRequester) userKeyExits(uuid string, key string) boo
 }
 
 
-func (immudbRequester ImmudbRequester) confirmBuyer() {
+func (immudbRequester ImmudbRequester) confirmBuyer(user_id string, signature string,pufID string) bool {
+	sigBytes := []byte(signature)
+	//Verify
+	
+	//fmt.Println(user_id)
+	findPK := "SELECT public_key FROM user_keys WHERE uuid = @uname"
+	res, err:= immudbRequester.client.SQLQuery(immudbRequester.context,findPK,map[string]interface{}{"uname": user_id},false)
 
+	encodedStr := ""
+
+	
+	if len(res.Rows) > 0 {
+		if len(res.Rows[0].Values) > 0 {
+			encodedStr = schema.RenderValue(res.Rows[0].Values[0].Value)
+		} else {
+			return false
+		}
+	} else {
+		return false
+	}
+	
+
+	//fmt.Println(encodedStr)
+
+	decodedStrAsByteSlice, err := base64.StdEncoding.DecodeString(encodedStr[1:len(encodedStr)-1])
+    if err != nil {
+        panic("malformed input")
+    }
+    //fmt.Println(string(decodedStrAsByteSlice))
+
+	pk_sliced := strings.Split(string(decodedStrAsByteSlice),"-")
+	n := new(big.Int)
+	n, _ = n.SetString(pk_sliced[0],10)
+	e,_ := strconv.Atoi(pk_sliced[1])
+
+	pk := &rsa.PublicKey{n,e}
+	//fmt.Println(pk)
+	
+
+	h := sha256.New()
+	h.Write([]byte(pufID))
+	d := h.Sum(nil)
+	if rsa.VerifyPSS(pk, crypto.SHA256, d, sigBytes, nil) == nil {
+		return true
+	} else {
+		return false
+	}
 }
 
 func (immudbRequester ImmudbRequester) updateOwner() {

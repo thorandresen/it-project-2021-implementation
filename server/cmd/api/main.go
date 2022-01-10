@@ -82,8 +82,30 @@ func facotoryInitPuf(c *gin.Context) {
     c.IndentedJSON(http.StatusOK, "yes yes")
 }
 
+
+type ConfirmBuyerStuct struct{
+	UUID string `json:"uuid" binding:"required"`
+	PufID string `json:"pufID" binding:"required"`
+	Signature string `json:"signature" binding:"required"`
+}
 // Request an transfer of Ownsership
-func requestTransfer(c *gin.Context) {}
+func requestTransfer(c *gin.Context) {
+	data := ConfirmBuyerStuct{}
+	if err := c.ShouldBindJSON(&data); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	anser := db.DatabaseRequester.confirmBuyer(data.UUID,data.Signature, data.PufID)
+	if anser {
+		fmt.Println("verified")
+		c.JSON(http.StatusOK,data)
+		return
+	} else {
+		fmt.Println("bad signature")
+		c.JSON(http.StatusUnauthorized,data)
+		return
+	}
+}
 
 // Accept an transfer of Ownsership
 func acceptTransfer(c *gin.Context) {}

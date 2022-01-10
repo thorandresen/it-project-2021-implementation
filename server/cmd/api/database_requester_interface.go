@@ -20,7 +20,7 @@ type DatabaseRequester interface {
 	storeIdentity(string,string) bool
 
 	// Confirms the buyer of a product
-	confirmBuyer()
+	confirmBuyer(string, string, string) bool
 
 	// Updates the owner of a device 
 	updateOwner()
