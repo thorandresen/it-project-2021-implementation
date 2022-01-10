@@ -27,8 +27,8 @@ func (stubRequester StubRequester) storeIdentity(id string, pk string ) bool{
 	return true
 }
 
-func (stubRequester StubRequester) confirmBuyer() {
-
+func (stubRequester StubRequester) confirmBuyer(x string, y string, z string) bool{
+	return true
 }
 
 func (stubRequester StubRequester) updateOwner() {
