@@ -113,7 +113,7 @@ func appendRequestTimeStamp (time int64) {
 		
 		var avgFloat float64 = float64(avg) / 1000000
 
-		log.Printf("Average latency last 1000 request: %fms",avgFloat)
+		log.Printf("REQUEST TRANSFER: Average latency last 1000 request: %fms",avgFloat)
 		requestTimes = nil
 	} else {
 		requestTimes = append(requestTimes, time)
