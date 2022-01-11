@@ -16,8 +16,6 @@ import (
 	"math/big"
 	"strconv"
 	"strings"
-
-	"github.com/codenotary/immudb/pkg/api/schema"
 	//_ "github.com/go-sql-driver/mysql"
 )
 
@@ -304,22 +302,23 @@ func (mySqlRequester MySQLRequester) confirmBuyer(user_id string, signature stri
 	sigBytes := []byte(signature)
 	//Verify
 
-	//fmt.Println(user_id)
-	findPK := "SELECT public_key FROM user_keys WHERE uuid = @uname"
-	res, err := immudbRequester.client.SQLQuery(immudbRequester.context, findPK, map[string]interface{}{"uname": user_id}, false)
+	tx, _ := mySqlRequester.db.BeginTx(mySqlRequester.context, &sql.TxOptions{})
+
+	// Check if user exists else return false bish
+	if !NewMySQLRequester().userKeyExits(user_id, mySqlRequester) {
+		return false
+	}
+
+	findPK := "SELECT public_key FROM user_keys WHERE uuid LIKE " + user_id + ";"
+	// res, err := immudbRequester.client.SQLQuery(immudbRequester.context, findPK, map[string]interface{}{"uname": user_id}, false)
+	res, err := mySqlRequester.db.Query(findPK)
 
 	encodedStr := ""
 
+	res.Next()
+	res.Scan(&encodedStr)
+
 	// Exit if user don't exist
-	if len(res.Rows) > 0 {
-		if len(res.Rows[0].Values) > 0 {
-			encodedStr = schema.RenderValue(res.Rows[0].Values[0].Value)
-		} else {
-			return false
-		}
-	} else {
-		return false
-	}
 
 	//Decode public key
 	decodedStrAsByteSlice, err := base64.StdEncoding.DecodeString(encodedStr[1 : len(encodedStr)-1])
@@ -341,8 +340,10 @@ func (mySqlRequester MySQLRequester) confirmBuyer(user_id string, signature stri
 	h.Write([]byte(pufID))
 	d := h.Sum(nil)
 	if rsa.VerifyPSS(pk, crypto.SHA256, d, sigBytes, nil) == nil {
+		tx.Commit()
 		return true
 	} else {
+		tx.Commit()
 		return false
 	}
 }
