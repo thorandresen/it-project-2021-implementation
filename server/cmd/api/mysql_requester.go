@@ -22,8 +22,9 @@ import (
 
 // Concrete SQL Implmentation
 type MySQLRequester struct {
-	db      *sql.DB
-	context context.Context
+	db           *sql.DB
+	context      context.Context
+	serverConfig ServerConfig
 }
 
 type devices struct {
@@ -32,21 +33,21 @@ type devices struct {
 	challenge_counter int
 }
 
-func main() {
-	mySqlReq := NewMySQLRequester()
-	mySqlReq.commenceDatabase()
-	// mySqlReq.testQuery()
-	// mySqlReq.initiatePuf(6)
-	// mySqlReq.storeIdentity("testUser1", "MjE0MjEwNzMzMjMyODc1NDU3Mjk0OTU0ODg2NzMxNjgyMjkxMzM5OTk4MDkzMTc3NDcxMzI5NzYzMDMwNjQ4MDI5NjIxNTc2Mzc3NDA5MjQxOTg2MTE5Nzk1NjcwMTQ2MTExMjkyNTU0OTk2NjAxODM2Mjg5ODg2MzEyNTQzODUzMjA4MjI3NDU2Mjg4OTc0MDg0NDE5NDM2NTUzMTQzODA4MzI3NDg5ODkwMTQzNDAxMzA4MTA4NTQ4MDEzNDIwMDM0Mjk0MTkyNzQ2MDYwMTIwNTkwMTgxNjUxMzg2NTAyMTgzNDE3MTg2NzM5NjUyMTI4MDE1MTE2NzA0NDQ0MTc0Nzc4MTIwMTE3Mjc3NTUyMTk2MTg4MDM5NDcyMTMxMzU1NTUyMTEwOTg3NzM3NDg4MDA4NjUwMTY4MzY2MTQ0MTU3MzU0MTg3NTE2MjY0ODMxNjQxMjYyMjU2MTA1NDY3MTU3NzQxMDk1NTA4MDI5OTI3MDUzMzM0NDUyODE0MjkyNDQ0NTk1MTQ1NzcxMjEyMzU2NTUwMTgwODg5MDIwMTE2MjUxODU4NDg1MjMxMzQ5NjMyNTY3MTk3NjMwODgwODc0MTAwNTQ5OTkzMDA1NzAxNDc3NTIxNTQyNzc1OTEzMzIwMTIyMDgwNzg1MTI5NTkyNjQwNDcwODEyMzQzNzU4MjE3NDA5NzQ3MTYwOTI0ODQ4NjcyNTQ4NDIyODcwNTY0MDE0NjYyODA4MDMwMjgyMTQyNDQ1NDU3Njk0MzcxMTk2NjQ1MDU2NzY4OTgxNzY3NDAxMzcxNTI5NjE5NTIxMzA0MzctNjU1Mzc=")
-	// // mySqlReq.getChallenge(4)
-	// mySqlReq.createDevice("6", "testUser1", "stille")
-	// mySqlReq.verifyChallenge(4, 0, "af3e133428b9e25c55bc59fe534248e6a0c0f17b")
-	mySqlReq.confirmBuyer("testUser1", "asasas", "6")
+// func main() {
+// 	mySqlReq := NewMySQLRequester()
+// 	mySqlReq.commenceDatabase()
+// 	// mySqlReq.testQuery()
+// 	// mySqlReq.initiatePuf(6)
+// 	// mySqlReq.storeIdentity("testUser1", "MjE0MjEwNzMzMjMyODc1NDU3Mjk0OTU0ODg2NzMxNjgyMjkxMzM5OTk4MDkzMTc3NDcxMzI5NzYzMDMwNjQ4MDI5NjIxNTc2Mzc3NDA5MjQxOTg2MTE5Nzk1NjcwMTQ2MTExMjkyNTU0OTk2NjAxODM2Mjg5ODg2MzEyNTQzODUzMjA4MjI3NDU2Mjg4OTc0MDg0NDE5NDM2NTUzMTQzODA4MzI3NDg5ODkwMTQzNDAxMzA4MTA4NTQ4MDEzNDIwMDM0Mjk0MTkyNzQ2MDYwMTIwNTkwMTgxNjUxMzg2NTAyMTgzNDE3MTg2NzM5NjUyMTI4MDE1MTE2NzA0NDQ0MTc0Nzc4MTIwMTE3Mjc3NTUyMTk2MTg4MDM5NDcyMTMxMzU1NTUyMTEwOTg3NzM3NDg4MDA4NjUwMTY4MzY2MTQ0MTU3MzU0MTg3NTE2MjY0ODMxNjQxMjYyMjU2MTA1NDY3MTU3NzQxMDk1NTA4MDI5OTI3MDUzMzM0NDUyODE0MjkyNDQ0NTk1MTQ1NzcxMjEyMzU2NTUwMTgwODg5MDIwMTE2MjUxODU4NDg1MjMxMzQ5NjMyNTY3MTk3NjMwODgwODc0MTAwNTQ5OTkzMDA1NzAxNDc3NTIxNTQyNzc1OTEzMzIwMTIyMDgwNzg1MTI5NTkyNjQwNDcwODEyMzQzNzU4MjE3NDA5NzQ3MTYwOTI0ODQ4NjcyNTQ4NDIyODcwNTY0MDE0NjYyODA4MDMwMjgyMTQyNDQ1NDU3Njk0MzcxMTk2NjQ1MDU2NzY4OTgxNzY3NDAxMzcxNTI5NjE5NTIxMzA0MzctNjU1Mzc=")
+// 	// // mySqlReq.getChallenge(4)
+// 	// mySqlReq.createDevice("6", "testUser1", "stille")
+// 	// mySqlReq.verifyChallenge(4, 0, "af3e133428b9e25c55bc59fe534248e6a0c0f17b")
+// 	mySqlReq.confirmBuyer("testUser1", "asasas", "6")
 
-	// mySqlReq.benchmark()
-}
+// 	// mySqlReq.benchmark()
+// }
 
-func NewMySQLRequester() (sqlRequester MySQLRequester) {
+func NewMySQLRequester(connector ServerConfig) (sqlRequester MySQLRequester) {
 	// Capture connection properties.
 	// cfg := mysql.Config{
 	// 	User:   "thor@localhost",
@@ -56,8 +57,13 @@ func NewMySQLRequester() (sqlRequester MySQLRequester) {
 	// 	DBName: "recordings",
 	// }
 	// Get a database handle.
+
+	sqlRequester.serverConfig = connector
+
+	connectionString := sqlRequester.serverConfig.db_username + ":" + sqlRequester.serverConfig.db_password + "@tcp(" + sqlRequester.serverConfig.db_addr + ":" + strconv.Itoa(sqlRequester.serverConfig.db_port) + ")/defaultdb?charset=utf8&autocommit=true"
+
 	var err error
-	db, err := sql.Open("mysql", "thor:admin@tcp(127.0.0.1:3306)/defaultdb?charset=utf8&autocommit=true")
+	db, err := sql.Open("mysql", connectionString)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -307,9 +313,9 @@ func (mySqlRequester MySQLRequester) confirmBuyer(user_id string, signature stri
 	tx, _ := mySqlRequester.db.BeginTx(mySqlRequester.context, &sql.TxOptions{})
 
 	// Check if user exists else return false bish
-	if !NewMySQLRequester().userKeyExits(user_id, mySqlRequester) {
-		return false
-	}
+	// if !NewMySQLRequester().userKeyExits(user_id, mySqlRequester) {
+	// 	return false
+	// }
 
 	findPK := "SELECT public_key FROM user_keys WHERE uuid LIKE " + strconv.Quote(user_id)
 
