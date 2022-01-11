@@ -31,17 +31,17 @@ type devices struct {
 	challenge_counter int
 }
 
-func main() {
-	mySqlReq := NewMySQLRequester()
-	mySqlReq.commenceDatabase()
-	// mySqlReq.testQuery()
-	// mySqlReq.initiatePuf(4)
-	// mySqlReq.storeIdentity("hej3", "skrrtpapa3")
-	// mySqlReq.getChallenge(4)
-	// mySqlReq.createDevice("4", "hej3", "stille")
-	// mySqlReq.verifyChallenge(4, 0, "af3e133428b9e25c55bc59fe534248e6a0c0f17b")
-	mySqlReq.benchmark()
-}
+//func main() {
+//	mySqlReq := NewMySQLRequester()
+//	mySqlReq.commenceDatabase()
+//	// mySqlReq.testQuery()
+//	// mySqlReq.initiatePuf(4)
+//	// mySqlReq.storeIdentity("hej3", "skrrtpapa3")
+//	// mySqlReq.getChallenge(4)
+//	// mySqlReq.createDevice("4", "hej3", "stille")
+//	// mySqlReq.verifyChallenge(4, 0, "af3e133428b9e25c55bc59fe534248e6a0c0f17b")
+//	mySqlReq.benchmark()
+//}
 
 func NewMySQLRequester() (sqlRequester MySQLRequester) {
 	// Capture connection properties.
