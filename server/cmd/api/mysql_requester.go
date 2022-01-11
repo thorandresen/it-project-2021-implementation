@@ -16,7 +16,8 @@ import (
 	"math/big"
 	"strconv"
 	"strings"
-	//_ "github.com/go-sql-driver/mysql"
+
+	_ "github.com/go-sql-driver/mysql"
 )
 
 // Concrete SQL Implmentation
@@ -31,17 +32,19 @@ type devices struct {
 	challenge_counter int
 }
 
-//func main() {
-//	mySqlReq := NewMySQLRequester()
-//	mySqlReq.commenceDatabase()
-//	// mySqlReq.testQuery()
-//	// mySqlReq.initiatePuf(4)
-//	// mySqlReq.storeIdentity("hej3", "skrrtpapa3")
-//	// mySqlReq.getChallenge(4)
-//	// mySqlReq.createDevice("4", "hej3", "stille")
-//	// mySqlReq.verifyChallenge(4, 0, "af3e133428b9e25c55bc59fe534248e6a0c0f17b")
-//	mySqlReq.benchmark()
-//}
+func main() {
+	mySqlReq := NewMySQLRequester()
+	mySqlReq.commenceDatabase()
+	// mySqlReq.testQuery()
+	// mySqlReq.initiatePuf(6)
+	// mySqlReq.storeIdentity("testUser1", "MjE0MjEwNzMzMjMyODc1NDU3Mjk0OTU0ODg2NzMxNjgyMjkxMzM5OTk4MDkzMTc3NDcxMzI5NzYzMDMwNjQ4MDI5NjIxNTc2Mzc3NDA5MjQxOTg2MTE5Nzk1NjcwMTQ2MTExMjkyNTU0OTk2NjAxODM2Mjg5ODg2MzEyNTQzODUzMjA4MjI3NDU2Mjg4OTc0MDg0NDE5NDM2NTUzMTQzODA4MzI3NDg5ODkwMTQzNDAxMzA4MTA4NTQ4MDEzNDIwMDM0Mjk0MTkyNzQ2MDYwMTIwNTkwMTgxNjUxMzg2NTAyMTgzNDE3MTg2NzM5NjUyMTI4MDE1MTE2NzA0NDQ0MTc0Nzc4MTIwMTE3Mjc3NTUyMTk2MTg4MDM5NDcyMTMxMzU1NTUyMTEwOTg3NzM3NDg4MDA4NjUwMTY4MzY2MTQ0MTU3MzU0MTg3NTE2MjY0ODMxNjQxMjYyMjU2MTA1NDY3MTU3NzQxMDk1NTA4MDI5OTI3MDUzMzM0NDUyODE0MjkyNDQ0NTk1MTQ1NzcxMjEyMzU2NTUwMTgwODg5MDIwMTE2MjUxODU4NDg1MjMxMzQ5NjMyNTY3MTk3NjMwODgwODc0MTAwNTQ5OTkzMDA1NzAxNDc3NTIxNTQyNzc1OTEzMzIwMTIyMDgwNzg1MTI5NTkyNjQwNDcwODEyMzQzNzU4MjE3NDA5NzQ3MTYwOTI0ODQ4NjcyNTQ4NDIyODcwNTY0MDE0NjYyODA4MDMwMjgyMTQyNDQ1NDU3Njk0MzcxMTk2NjQ1MDU2NzY4OTgxNzY3NDAxMzcxNTI5NjE5NTIxMzA0MzctNjU1Mzc=")
+	// // mySqlReq.getChallenge(4)
+	// mySqlReq.createDevice("6", "testUser1", "stille")
+	// mySqlReq.verifyChallenge(4, 0, "af3e133428b9e25c55bc59fe534248e6a0c0f17b")
+	mySqlReq.confirmBuyer("testUser1", "asasas", "6")
+
+	// mySqlReq.benchmark()
+}
 
 func NewMySQLRequester() (sqlRequester MySQLRequester) {
 	// Capture connection properties.
@@ -132,7 +135,6 @@ func (mySqlRequester MySQLRequester) commenceDatabase() {
 		} else {
 			fmt.Println(res)
 		}
-
 	}
 
 	tx.Commit()
@@ -175,7 +177,7 @@ func (mySqlRequester MySQLRequester) initiatePuf(id int) {
 	}
 
 	// r := rand.New(rand.NewSource(int64(id)))
-	for i := 0; i < 30000; i++ {
+	for i := 0; i < 100; i++ {
 		h := sha1.New()
 		s := strconv.Itoa(id) + strconv.Itoa(i)
 		h.Write([]byte(s))
@@ -309,19 +311,15 @@ func (mySqlRequester MySQLRequester) confirmBuyer(user_id string, signature stri
 		return false
 	}
 
-	findPK := "SELECT public_key FROM user_keys WHERE uuid LIKE " + user_id + ";"
-	// res, err := immudbRequester.client.SQLQuery(immudbRequester.context, findPK, map[string]interface{}{"uname": user_id}, false)
-	res, err := mySqlRequester.db.Query(findPK)
+	findPK := "SELECT public_key FROM user_keys WHERE uuid LIKE " + strconv.Quote(user_id)
 
 	encodedStr := ""
-
-	res.Next()
-	res.Scan(&encodedStr)
+	err := mySqlRequester.db.QueryRow(findPK).Scan(&encodedStr)
 
 	// Exit if user don't exist
 
 	//Decode public key
-	decodedStrAsByteSlice, err := base64.StdEncoding.DecodeString(encodedStr[1 : len(encodedStr)-1])
+	decodedStrAsByteSlice, err := base64.StdEncoding.DecodeString(encodedStr)
 	if err != nil {
 		panic("malformed input")
 	}
