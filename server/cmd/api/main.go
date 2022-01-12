@@ -35,18 +35,20 @@ func main() {
 	log.SetOutput(file)
 	log.Println("test")
 
-	//Setup Routers
-	router := gin.Default()
-	router.POST("/verify", verifyChallenge)
-	router.GET("/challenge/:challenge", getChallenge)
-	router.POST("/release/:id", releaseID)
-	router.POST("/init/:id", facotoryInitPuf)
-	router.POST("/create-user", createNewUser)
-	router.POST("/transfer/request", requestTransfer)
-	router.POST("/transfer/accept", acceptTransfer)
-	host := config.server_addr + ":" + strconv.Itoa(config.server_port)
-	fmt.Println(host)
-	router.Run(host)
+	performBenchmark(db.DatabaseRequester)
+
+	// //Setup Routers
+	// router := gin.Default()
+	// router.POST("/verify", verifyChallenge)
+	// router.GET("/challenge/:challenge", getChallenge)
+	// router.POST("/release/:id", releaseID)
+	// router.POST("/init/:id", facotoryInitPuf)
+	// router.POST("/create-user", createNewUser)
+	// router.POST("/transfer/request", requestTransfer)
+	// router.POST("/transfer/accept", acceptTransfer)
+	// host := config.server_addr + ":" + strconv.Itoa(config.server_port)
+	// fmt.Println(host)
+	// router.Run(host)
 }
 
 // Returns a challenge for a given PUF id

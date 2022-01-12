@@ -2,6 +2,9 @@ package main
 
 // Interface for the Database Requster
 type DatabaseRequester interface {
+	// Returns the type of database
+	getDatabaseType() string
+
 	// Returns a challenge based on a PUF id
 	getChallenge(int) int
 

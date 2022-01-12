@@ -355,3 +355,7 @@ func (mySqlRequester MySQLRequester) confirmBuyer(user_id string, signature stri
 func (mySqlRequester MySQLRequester) updateOwner() {
 
 }
+
+func (mySqlRequester MySQLRequester) getDatabaseType() string {
+	return "mysql"
+}

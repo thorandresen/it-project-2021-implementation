@@ -265,7 +265,6 @@ func (immudbRequester ImmudbRequester) confirmBuyer(user_id string, signature st
 }
 
 func (immudbRequester ImmudbRequester) updateOwner() {
-
 	storePKCommand := "UPSERT INTO devices(pid,owner,challenge_counter,state) VALUES (@pid,@owner,@challenge_counter,@state)"
 	_, _ = immudbRequester.client.SQLExec(immudbRequester.context, storePKCommand, map[string]interface{}{"pid": 1, "owner": "sad", "challenge_counter": 2, "state": "released"})
 }
@@ -274,3 +273,7 @@ func (immudbRequester ImmudbRequester) updateOwner() {
 //	Log lookup tid thor
 //  Gør mysql_requester compositionel
 //
+
+func (immudbRequester ImmudbRequester) getDatabaseType() string {
+	return "immudb"
+}
