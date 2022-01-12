@@ -89,8 +89,6 @@ func (mySqlRequester MySQLRequester) getChallenge(pufID int) int {
 	if err != nil {
 		panic(err)
 	}
-
-	fmt.Println(challenge)
 	return challenge
 }
 
@@ -134,12 +132,12 @@ func (mySqlRequester MySQLRequester) commenceDatabase() {
 
 	//Run through commands
 	for _, command := range commands {
-		res, err := db.ExecContext(mySqlRequester.context, command)
+		_, err := db.ExecContext(mySqlRequester.context, command)
 
 		if err != nil {
 			panic(err)
 		} else {
-			fmt.Println(res)
+
 		}
 	}
 
@@ -251,8 +249,6 @@ func (mySqlRequester MySQLRequester) userKeyExits(uuidparam string, sqlRequester
 
 	if err != nil {
 		panic(err)
-	} else {
-		fmt.Println(res)
 	}
 	var exists int
 
@@ -261,6 +257,7 @@ func (mySqlRequester MySQLRequester) userKeyExits(uuidparam string, sqlRequester
 	fmt.Println(exists)
 
 	tx.Commit()
+	res.Close()
 
 	if exists == 1 {
 		return true
