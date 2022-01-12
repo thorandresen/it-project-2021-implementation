@@ -183,7 +183,7 @@ func (mySqlRequester MySQLRequester) initiatePuf(id int) {
 	}
 
 	// r := rand.New(rand.NewSource(int64(id)))
-	for i := 0; i < 100; i++ {
+	for i := 0; i < 1000; i++ {
 		h := sha1.New()
 		s := strconv.Itoa(id) + strconv.Itoa(i)
 		h.Write([]byte(s))

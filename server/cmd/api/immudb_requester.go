@@ -126,7 +126,7 @@ func (immudbRequester ImmudbRequester) initiatePuf(id int) {
 		panic(err)
 	}
 
-	for i := 0; i < 50000; i++ {
+	for i := 0; i < 1000; i++ {
 		h := sha1.New()
 		s := strconv.Itoa(id) + strconv.Itoa(i)
 		h.Write([]byte(s))
@@ -265,6 +265,7 @@ func (immudbRequester ImmudbRequester) confirmBuyer(user_id string, signature st
 }
 
 func (immudbRequester ImmudbRequester) updateOwner() {
+
 	storePKCommand := "UPSERT INTO devices(pid,owner,challenge_counter,state) VALUES (@pid,@owner,@challenge_counter,@state)"
 	_, _ = immudbRequester.client.SQLExec(immudbRequester.context, storePKCommand, map[string]interface{}{"pid": 1, "owner": "sad", "challenge_counter": 2, "state": "released"})
 }

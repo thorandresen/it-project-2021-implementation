@@ -51,5 +51,7 @@ tags
 [._]*.un~
 
 secret.yaml
+mysql-config.yaml
+immudb-config.yaml
 
 *.log.txt
