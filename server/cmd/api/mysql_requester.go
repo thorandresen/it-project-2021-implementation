@@ -72,7 +72,7 @@ func NewMySQLRequester(connector ServerConfig) (sqlRequester MySQLRequester) {
 	if pingErr != nil {
 		log.Fatal(pingErr)
 	}
-	fmt.Println("Connected!")
+	//fmt.Println("Connected!")
 
 	sqlRequester.db = db
 	sqlRequester.context = context.Background()
@@ -109,12 +109,12 @@ func (mySqlRequester MySQLRequester) verifyChallenge(pufID int, challenge_counte
 	res.Scan(&responseres)
 
 	if responseres == response {
-		fmt.Println("VERIFIED CHALLENGE")
+		//	fmt.Println("VERIFIED CHALLENGE")
 		return true
 	}
 
 	tx.Commit()
-	fmt.Println("NOT VERIFIED CHALLENGE")
+	//fmt.Println("NOT VERIFIED CHALLENGE")
 	return false
 }
 
@@ -197,8 +197,8 @@ func (mySqlRequester MySQLRequester) initiatePuf(id int) {
 			panic(err)
 		}
 	}
-
 	tx.Commit()
+
 	fmt.Println("Iniated puf")
 }
 
@@ -212,7 +212,7 @@ func (mySqlRequester MySQLRequester) storeIdentity(uuid string, pk string) bool 
 			panic(err)
 			return false
 		}
-		fmt.Println("User stored")
+		//fmt.Println("User stored")
 		tx.Commit()
 		return true
 	}
@@ -254,7 +254,7 @@ func (mySqlRequester MySQLRequester) userKeyExits(uuidparam string, sqlRequester
 
 	res.Next()
 	res.Scan(&exists)
-	fmt.Println(exists)
+	//fmt.Println(exists)
 
 	tx.Commit()
 	res.Close()
