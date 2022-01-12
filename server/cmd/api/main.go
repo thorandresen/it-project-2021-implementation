@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
 	"strconv"
 	"time"
 
@@ -26,16 +25,16 @@ func main() {
 
 	db = databaseFactory(config)
 
-	db.DatabaseRequester.commenceDatabase()
-
-	file, err := os.OpenFile("request_logs.log.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
-	if err != nil {
-		log.Fatal(err)
-	}
-	log.SetOutput(file)
-	log.Println("test")
-
 	performBenchmark(db.DatabaseRequester)
+
+	//db.DatabaseRequester.commenceDatabase()
+
+	// file, err := os.OpenFile("request_logs.log.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+	// log.SetOutput(file)
+	// log.Println("test")
 
 	// //Setup Routers
 	// router := gin.Default()

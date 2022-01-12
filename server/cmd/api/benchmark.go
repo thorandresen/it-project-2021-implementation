@@ -7,10 +7,6 @@ import (
 	"time"
 )
 
-func benchmark() {
-
-}
-
 func performBenchmark(db DatabaseRequester) {
 	fmt.Println("COMMENCING BENCHMARK OF " + db.getDatabaseType())
 	totalBenchTime := time.Now()
