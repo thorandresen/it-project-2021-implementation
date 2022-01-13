@@ -82,7 +82,6 @@ func execute(pufId int, m *sync.Mutex) {
 		// }
 	}
 	logTimes(times, m)
-
 }
 
 func requestOwnership(pufId int, m *sync.Mutex) (v bool) {
@@ -133,7 +132,6 @@ func requestOwnership(pufId int, m *sync.Mutex) (v bool) {
 			// }
 		}
 	}
-	logTimes(times, m)
 	// //Verify
 	// pk := &sk.PublicKey
 	// h := sha256.New()
@@ -173,7 +171,7 @@ func main() {
 	var m sync.Mutex
 
 	var pufId = 1
-	for i := 0; i < 4; i++ {
+	for i := 0; i < 12; i++ {
 		// go execute(pufId)
 		go requestOwnership(pufId, &m)
 	}
