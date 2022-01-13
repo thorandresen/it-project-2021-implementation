@@ -35,7 +35,7 @@ func performBenchmark(db DatabaseRequester) {
 
 	fmt.Println("INITIATING PUFS")
 	var ipBar Bar
-	siBar.NewOption(0, 100)
+	ipBar.NewOption(0, 100)
 
 	for i := 0; i < 100; i++ {
 		start := time.Now()

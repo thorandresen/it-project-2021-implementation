@@ -127,7 +127,7 @@ func (mySqlRequester MySQLRequester) commenceDatabase() {
 	//commands = append(commands, "DROP TABLE puf_2")
 
 	db := mySqlRequester.db
-	// defer db.Close()
+	defer db.Close()
 	tx, _ := mySqlRequester.db.BeginTx(mySqlRequester.context, &sql.TxOptions{})
 
 	//Run through commands
@@ -203,9 +203,9 @@ func (mySqlRequester MySQLRequester) initiatePuf(id int) {
 }
 
 func (mySqlRequester MySQLRequester) storeIdentity(uuid string, pk string) bool {
-	tx, _ := mySqlRequester.db.BeginTx(mySqlRequester.context, &sql.TxOptions{})
 	// check if users key exist, if not store the key with the uuid
-	if !mySqlRequester.userKeyExits(uuid, mySqlRequester) {
+	if !mySqlRequester.userKeyExits(uuid) {
+		tx, _ := mySqlRequester.db.BeginTx(mySqlRequester.context, &sql.TxOptions{})
 		storePKCommand := "INSERT INTO user_keys(uuid, public_key) VALUES ('" + uuid + "', '" + pk + "');"
 		_, err := mySqlRequester.db.ExecContext(mySqlRequester.context, storePKCommand)
 		if err != nil {
@@ -239,7 +239,7 @@ func (mySqlRequester MySQLRequester) userExist(uuid string) bool {
 	return false
 }
 
-func (mySqlRequester MySQLRequester) userKeyExits(uuidparam string, sqlRequester MySQLRequester) bool {
+func (mySqlRequester MySQLRequester) userKeyExits(uuidparam string) bool {
 	command := "SELECT EXISTS(SELECT 1 FROM user_keys WHERE uuid LIKE '" + uuidparam + "');"
 
 	tx, _ := mySqlRequester.db.BeginTx(mySqlRequester.context, &sql.TxOptions{})
