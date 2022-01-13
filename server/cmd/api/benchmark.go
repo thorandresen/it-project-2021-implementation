@@ -19,8 +19,8 @@ func performBenchmark(db DatabaseRequester) {
 
 	fmt.Println("STORING IDENTITIES")
 	var siBar Bar
-	siBar.NewOption(0, 10000)
-	for i := 0; i < 10000; i++ {
+	siBar.NewOption(0, 5000)
+	for i := 0; i < 5000; i++ {
 		start := time.Now()
 
 		db.storeIdentity("hi", "hi")
@@ -35,9 +35,9 @@ func performBenchmark(db DatabaseRequester) {
 
 	fmt.Println("INITIATING PUFS")
 	var ipBar Bar
-	ipBar.NewOption(0, 100)
+	ipBar.NewOption(0, 50)
 
-	for i := 0; i < 100; i++ {
+	for i := 0; i < 50; i++ {
 		start := time.Now()
 
 		db.initiatePuf(i)
@@ -53,8 +53,8 @@ func performBenchmark(db DatabaseRequester) {
 	fmt.Println("UPDATE OWNERS")
 
 	var uoBar Bar
-	uoBar.NewOption(0, 20000)
-	for i := 0; i < 20000; i++ {
+	uoBar.NewOption(0, 10000)
+	for i := 0; i < 10000; i++ {
 		start := time.Now()
 
 		db.updateOwner()
